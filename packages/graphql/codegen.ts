@@ -11,8 +11,11 @@ const config: CodegenConfig = {
   generates: {
     './src/generated/': {
       preset: 'client',
+      // Components receive plain objects; fragments are only for sharing selections.
+      presetConfig: { fragmentMasking: false },
       config: {
         documentMode: 'string',
+        useTypeImports: true,
         scalars: { DateTime: 'string', JSON: 'Record<string, unknown>', Money: 'number' },
       },
     },

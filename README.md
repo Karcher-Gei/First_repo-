@@ -77,6 +77,8 @@ does today (Next.js sends 308 where PrestaShop sends 301; Google treats them the
 - TypeScript strict everywhere.
 - Each Vendure plugin owns its entities, GraphQL extensions and services; plugins never import each other.
 - URLs are built and parsed only in `packages/seo`.
+- Shop API documents are written with `graphql(...)` from `@karcher/graphql`; their types come from `pnpm codegen`
+  and the generated files in `packages/graphql/src/generated` are committed, so builds never need a running server.
 - Prices are integers in millimes (TND has 3 decimals; see `TndMoneyStrategy`).
 
 ## Not done yet

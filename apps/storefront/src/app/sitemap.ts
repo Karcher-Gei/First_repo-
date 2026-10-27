@@ -21,7 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (let skip = 0; ; skip += take) {
     const { collections } = await shopQuery(SITEMAP_COLLECTIONS, { skip, take });
     for (const collection of collections.items) {
-      const { legacyId } = collection.customFields;
+      const legacyId = collection.customFields?.legacyId;
       if (legacyId != null) {
         entries.push({
           url: absoluteUrl(categoryPath({ id: legacyId, slug: collection.slug })),

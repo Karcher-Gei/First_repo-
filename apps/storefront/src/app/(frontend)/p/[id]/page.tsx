@@ -53,7 +53,9 @@ export default async function ProductPage({ params, searchParams }: Props) {
   }
 
   const variant = product.variants[0];
-  const category = product.collections.find(c => c.customFields.legacyId != null);
+  const category = product.collections
+    .map(c => ({ name: c.name, slug: c.slug, legacyId: c.customFields?.legacyId }))
+    .find(c => c.legacyId != null);
   const images = product.assets.length > 0 ? product.assets : product.featuredAsset ? [product.featuredAsset] : [];
   const jsonLd = [
     productJsonLd({
@@ -62,15 +64,15 @@ export default async function ProductPage({ params, searchParams }: Props) {
       description: plainText(product.description),
       images: images.map(image => `${image.preview}?preset=large`),
       sku: variant?.sku,
-      gtin13: product.customFields.ean13,
+      gtin13: product.customFields?.ean13,
       price: (variant?.priceWithTax ?? 0) / 1000,
       currency: 'TND',
       inStock: variant?.stockLevel !== 'OUT_OF_STOCK',
     }),
     breadcrumbJsonLd([
       { name: 'Accueil', url: absoluteUrl('/') },
-      ...(category?.customFields.legacyId != null
-        ? [{ name: category.name, url: absoluteUrl(categoryPath({ id: category.customFields.legacyId, slug: category.slug })) }]
+      ...(category?.legacyId != null
+        ? [{ name: category.name, url: absoluteUrl(categoryPath({ id: category.legacyId, slug: category.slug })) }]
         : []),
       { name: product.name, url: absoluteUrl(href ?? '/') },
     ]),

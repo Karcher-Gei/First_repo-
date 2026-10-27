@@ -24,8 +24,8 @@ async function loadCollection(id: string) {
   return collections.items[0] ?? null;
 }
 
-function canonicalOf(collection: { slug: string; customFields: { legacyId: number | null } }): string | null {
-  const { legacyId } = collection.customFields;
+function canonicalOf(collection: { slug: string; customFields: { legacyId: number | null } | null }): string | null {
+  const legacyId = collection.customFields?.legacyId;
   return legacyId == null ? null : categoryPath({ id: legacyId, slug: collection.slug });
 }
 

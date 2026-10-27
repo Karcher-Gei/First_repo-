@@ -1,108 +1,109 @@
-import { typedQuery } from '@karcher/graphql';
+import {
+  graphql,
+  type ProductSummaryFragment,
+  type VariantSummaryFragment,
+} from '@karcher/graphql';
 
 /*
- * Hand-typed Shop API queries. Once the Vendure server runs, `pnpm codegen` can generate these
- * types from the schema instead (see packages/graphql/codegen.ts).
+ * Shop API documents. Their result and variable types are generated from the Vendure schema:
+ * after editing a document here, run `pnpm codegen` with the server running.
  */
 
-export interface LegacyFields {
-  legacyId: number | null;
-  ean13: string | null;
-  urlCategory: string | null;
-}
+export type ProductSummary = ProductSummaryFragment;
+export type VariantSummary = VariantSummaryFragment;
 
-export interface ProductSummary {
-  id: string;
-  name: string;
-  slug: string;
-  featuredAsset: { preview: string } | null;
-  customFields: LegacyFields;
-}
+graphql(`
+  fragment ProductSummary on Product {
+    id
+    name
+    slug
+    featuredAsset {
+      preview
+    }
+    customFields {
+      legacyId
+      ean13
+      urlCategory
+    }
+  }
+`);
 
-export interface VariantSummary {
-  id: string;
-  priceWithTax: number;
-  product: ProductSummary;
-}
+graphql(`
+  fragment VariantSummary on ProductVariant {
+    id
+    priceWithTax
+    product {
+      ...ProductSummary
+    }
+  }
+`);
 
-const PRODUCT_SUMMARY = /* GraphQL */ `
-  id
-  name
-  slug
-  featuredAsset { preview }
-  customFields { legacyId ean13 urlCategory }
-`;
-
-export interface ProductDetail extends ProductSummary {
-  description: string;
-  assets: { preview: string }[];
-  collections: { name: string; slug: string; customFields: { legacyId: number | null } }[];
-  variants: { id: string; sku: string; priceWithTax: number; stockLevel: string }[];
-}
-
-export const PRODUCT_BY_LEGACY_ID = typedQuery<
-  { products: { items: ProductDetail[] } },
-  { legacyId: number }
->(/* GraphQL */ `
-  # Vendure list filters type every number as Float.
-  query ProductByLegacyId($legacyId: Float!) {
-    products(options: { take: 1, filter: { legacyId: { eq: $legacyId } } }) {
+// Uses the $take variable of the operations that spread it.
+graphql(`
+  fragment CollectionWithProducts on Collection {
+    id
+    name
+    slug
+    description
+    customFields {
+      legacyId
+    }
+    productVariants(options: { take: $take }) {
+      totalItems
       items {
-        ${PRODUCT_SUMMARY}
-        description
-        assets { preview }
-        collections { name slug customFields { legacyId } }
-        variants { id sku priceWithTax stockLevel }
+        ...VariantSummary
       }
     }
   }
 `);
 
-export interface CollectionWithProducts {
-  id: string;
-  name: string;
-  slug: string;
-  description: string;
-  customFields: { legacyId: number | null };
-  productVariants: { totalItems: number; items: VariantSummary[] };
-}
-
-const COLLECTION_FIELDS = /* GraphQL */ `
-  id
-  name
-  slug
-  description
-  customFields { legacyId }
-  productVariants(options: { take: $take }) {
-    totalItems
-    items { id priceWithTax product { ${PRODUCT_SUMMARY} } }
-  }
-`;
-
-export const COLLECTION_BY_LEGACY_ID = typedQuery<
-  { collections: { items: CollectionWithProducts[] } },
-  { legacyId: number; take: number }
->(/* GraphQL */ `
-  query CollectionByLegacyId($legacyId: Float!, $take: Int!) {
-    collections(options: { take: 1, filter: { legacyId: { eq: $legacyId } } }) {
-      items { ${COLLECTION_FIELDS} }
+// Vendure list filters type every number as Float.
+export const PRODUCT_BY_LEGACY_ID = graphql(`
+  query ProductByLegacyId($legacyId: Float!) {
+    products(options: { take: 1, filter: { legacyId: { eq: $legacyId } } }) {
+      items {
+        ...ProductSummary
+        description
+        assets {
+          preview
+        }
+        collections {
+          name
+          slug
+          customFields {
+            legacyId
+          }
+        }
+        variants {
+          id
+          sku
+          priceWithTax
+          stockLevel
+        }
+      }
     }
   }
 `);
 
-export const COLLECTION_BY_SLUG = typedQuery<
-  { collection: CollectionWithProducts | null },
-  { slug: string; take: number }
->(/* GraphQL */ `
-  query CollectionBySlug($slug: String!, $take: Int!) {
-    collection(slug: $slug) { ${COLLECTION_FIELDS} }
+export const COLLECTION_BY_LEGACY_ID = graphql(`
+  query CollectionByLegacyId($legacyId: Float!, $take: Int!) {
+    collections(options: { take: 1, filter: { legacyId: { eq: $legacyId } } }) {
+      items {
+        ...CollectionWithProducts
+      }
+    }
   }
 `);
 
-export const LEGACY_IMAGE = typedQuery<
-  { legacyImage: { preview: string } | null },
-  { imageId: number }
->(/* GraphQL */ `
+export const COLLECTION_BY_SLUG = graphql(`
+  query CollectionBySlug($slug: String!, $take: Int!) {
+    collection(slug: $slug) {
+      ...CollectionWithProducts
+    }
+  }
+`);
+
+export const LEGACY_IMAGE = graphql(`
   query LegacyImage($imageId: Int!) {
     legacyImage(imageId: $imageId) {
       preview
@@ -110,10 +111,7 @@ export const LEGACY_IMAGE = typedQuery<
   }
 `);
 
-export const LEGACY_REDIRECT = typedQuery<
-  { legacyRedirect: { toPath: string; statusCode: number } | null },
-  { path: string }
->(/* GraphQL */ `
+export const LEGACY_REDIRECT = graphql(`
   query LegacyRedirect($path: String!) {
     legacyRedirect(path: $path) {
       toPath
@@ -122,31 +120,13 @@ export const LEGACY_REDIRECT = typedQuery<
   }
 `);
 
-export interface SubmitFormInput {
-  form: 'contact' | 'reseller' | 'after-sales';
-  fullName: string;
-  email: string;
-  phone?: string | null;
-  fields?: Record<string, string>;
-}
+export const SUBMIT_FORM = graphql(`
+  mutation SubmitForm($input: SubmitFormInput!) {
+    submitForm(input: $input)
+  }
+`);
 
-export const SUBMIT_FORM = typedQuery<{ submitForm: string }, { input: SubmitFormInput }>(
-  /* GraphQL */ `
-    mutation SubmitForm($input: SubmitFormInput!) {
-      submitForm(input: $input)
-    }
-  `,
-);
-
-export const SITEMAP_PRODUCTS = typedQuery<
-  {
-    products: {
-      totalItems: number;
-      items: (Pick<ProductSummary, 'slug' | 'customFields'> & { updatedAt: string })[];
-    };
-  },
-  { skip: number; take: number }
->(/* GraphQL */ `
+export const SITEMAP_PRODUCTS = graphql(`
   query SitemapProducts($skip: Int!, $take: Int!) {
     products(options: { skip: $skip, take: $take }) {
       totalItems
@@ -163,14 +143,7 @@ export const SITEMAP_PRODUCTS = typedQuery<
   }
 `);
 
-export const SITEMAP_COLLECTIONS = typedQuery<
-  {
-    collections: {
-      items: { slug: string; updatedAt: string; customFields: { legacyId: number | null } }[];
-    };
-  },
-  { skip: number; take: number }
->(/* GraphQL */ `
+export const SITEMAP_COLLECTIONS = graphql(`
   query SitemapCollections($skip: Int!, $take: Int!) {
     collections(options: { skip: $skip, take: $take }) {
       items {
