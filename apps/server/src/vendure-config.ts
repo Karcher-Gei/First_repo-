@@ -19,6 +19,7 @@ import { LegacyUrlsPlugin } from './plugins/legacy-urls/legacy-urls.plugin';
 import { MerchandisingPlugin } from './plugins/merchandising/merchandising.plugin';
 import { MetaCapiPlugin } from './plugins/meta-capi/meta-capi.plugin';
 import { QuotesPlugin } from './plugins/quotes/quotes.plugin';
+import { StorefrontCachePlugin } from './plugins/storefront-cache/storefront-cache.plugin';
 import { WarrantyPlugin } from './plugins/warranty/warranty.plugin';
 
 const IS_DEV = process.env.APP_ENV === 'dev';
@@ -127,6 +128,7 @@ export const config: VendureConfig = {
         FormsPlugin,
         LegacyUrlsPlugin,
         MerchandisingPlugin,
+        StorefrontCachePlugin.init({ storefrontUrl, secret: process.env.REVALIDATE_SECRET ?? '' }),
         MetaCapiPlugin.init({
             pixelId: process.env.META_PIXEL_ID ?? '',
             accessToken: process.env.META_CAPI_ACCESS_TOKEN ?? '',

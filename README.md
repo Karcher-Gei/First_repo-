@@ -161,6 +161,14 @@ with combinations, two VAT rates, inactive entries and both kinds of password ha
   Types are matched to the exact text of each document: format a file before running `pnpm codegen`, not after.
 - Prices are integers in millimes (TND has 3 decimals; see `TndMoneyStrategy`).
 
+## Catalog cache
+
+The storefront caches Shop API reads (`src/lib/vendure.ts`). When the catalog changes in Vendure (products,
+prices, stock, categories, facets, images, VAT), `StorefrontCachePlugin` calls the storefront's
+`/api/revalidate` (2 seconds after the last change, then again 30 seconds later for search and collection
+updates), which expires every cached read. Both apps need the same `REVALIDATE_SECRET`; without it the cache
+simply expires after 5 minutes.
+
 ## Not done yet
 
 Still to do, per the migration plan: e-mail templates in French and production deployment. Before going live:
@@ -169,5 +177,5 @@ Still to do, per the migration plan: e-mail templates in French and production d
 - Check `apps/server/src/plugins/konnect-payment/types.ts` against Konnect's API docs; the flow is tested only
   against a local mock of the same shapes.
 - Set the real delivery prices (the `standard` shipping method is free until then).
-- Clear the storefront's cached catalog data when products change in Vendure; today a change shows up within
-  5 minutes (`revalidate` in `src/lib/vendure.ts`).
+- Set the same `REVALIDATE_SECRET` in both apps. With several storefront instances, give Next.js a shared
+  cache handler so a refresh reaches all of them.
