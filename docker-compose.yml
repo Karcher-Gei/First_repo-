@@ -1,0 +1,18 @@
+# Local development services. The apps themselves run with `pnpm dev`.
+services:
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: karcher
+      POSTGRES_PASSWORD: karcher
+      POSTGRES_DB: vendure
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      # Creates the second database, for Payload CMS, on first start.
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+volumes:
+  postgres-data:

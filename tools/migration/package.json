@@ -1,0 +1,21 @@
+{
+  "name": "@karcher/migration",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Reads a copy of the PrestaShop database: URL inventory now, Vendure import in the Foundation phase",
+  "type": "module",
+  "scripts": {
+    "inventory": "tsx --env-file=.env src/inventory.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@karcher/seo": "workspace:*",
+    "mysql2": "3.24.6"
+  },
+  "devDependencies": {
+    "@karcher/config": "workspace:*",
+    "@types/node": "^24.0.0",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3"
+  }
+}

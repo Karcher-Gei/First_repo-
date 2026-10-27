@@ -1,0 +1,23 @@
+node_modules
+.turbo
+dist
+.next
+next-env.d.ts
+coverage
+*.tsbuildinfo
+
+# Vendure
+apps/server/static/assets
+apps/server/static/email/test-emails
+apps/server/static/email/templates
+apps/server/src/gql
+apps/server/.vendure/*
+!apps/server/.vendure/project.json
+
+# Migration output
+tools/migration/out
+
+# Env files: commit only the examples
+.env
+.env.*
+!.env.example

@@ -1,0 +1,21 @@
+/*
+ * Karcher design tokens for Tailwind v4. Import once in the app's global CSS:
+ *   @import "tailwindcss";
+ *   @import "@karcher/ui/styles.css";
+ * Check colours against the brand guidelines Karcher gives its official distributors.
+ */
+@theme {
+  --color-brand: #ffed00;
+  --color-brand-dark: #e6d500;
+  --color-ink: #1d1d1b;
+  --color-ink-muted: #5c5c5a;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f4f4f2;
+  --color-line: #dcdcd8;
+  --color-success: #2e7d32;
+  --color-danger: #c62828;
+
+  --font-sans: 'Roboto', ui-sans-serif, system-ui, sans-serif;
+
+  --radius-card: 0.5rem;
+}

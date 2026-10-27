@@ -1,0 +1,25 @@
+{
+  "name": "karcher-gei",
+  "private": true,
+  "description": "karcher-gei.tn: Next.js + Payload storefront on a Vendure (NestJS) commerce backend",
+  "packageManager": "pnpm@10.34.9",
+  "engines": {
+    "node": "^22.23.4 || >=24.22.1"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "codegen": "turbo run codegen",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "@karcher/config": "workspace:*",
+    "prettier": "^3.4.2",
+    "turbo": "2.11.10",
+    "typescript": "5.9.3"
+  }
+}

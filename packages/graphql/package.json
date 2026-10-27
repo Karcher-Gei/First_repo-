@@ -1,0 +1,23 @@
+{
+  "name": "@karcher/graphql",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Typed client for Vendure's Shop API; types are generated from the running server's schema",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "codegen": "graphql-codegen --config codegen.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "graphql": "^16.14.2"
+  },
+  "devDependencies": {
+    "@graphql-codegen/cli": "7.4.6",
+    "@graphql-codegen/client-preset": "6.2.3",
+    "@karcher/config": "workspace:*",
+    "typescript": "5.9.3"
+  }
+}

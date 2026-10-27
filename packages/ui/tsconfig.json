@@ -1,0 +1,4 @@
+{
+  "extends": "@karcher/config/tsconfig/library.json",
+  "include": ["src"]
+}

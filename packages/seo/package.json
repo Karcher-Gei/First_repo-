@@ -1,0 +1,19 @@
+{
+  "name": "@karcher/seo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The only place URLs are parsed and built: legacy PrestaShop patterns, canonical paths, JSON-LD",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@karcher/config": "workspace:*",
+    "typescript": "5.9.3",
+    "vitest": "4.0.18"
+  }
+}
