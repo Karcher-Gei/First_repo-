@@ -18,7 +18,9 @@ export default async function AddressesPage() {
 
   return (
     <section className="space-y-6">
-      <h1 className="text-3xl font-black uppercase">Mes adresses</h1>
+      <h1 className="font-heading text-4xl font-extrabold uppercase leading-none md:text-5xl">
+        Mes adresses
+      </h1>
       <AccountNav current="/compte/adresses" />
       {addresses.length === 0 ? <p>Aucune adresse enregistrée.</p> : null}
       <ul className="grid gap-4 sm:grid-cols-2">
@@ -65,7 +67,7 @@ export default async function AddressesPage() {
       </ul>
 
       <div className="space-y-3">
-        <h2 className="text-lg font-bold">Ajouter une adresse</h2>
+        <h2 className="font-heading text-2xl font-bold uppercase">Ajouter une adresse</h2>
         <ActionForm action={addAddress}>
           <AddressFields
             values={{

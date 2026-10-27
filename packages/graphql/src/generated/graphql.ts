@@ -470,14 +470,14 @@ export type ProductByLegacyIdQueryVariables = Exact<{
 
 export type ProductByLegacyIdQuery = { products: { items: Array<{ description: string, id: string, name: string, slug: string, seo: { metaTitle: string | null, metaDescription: string | null } | null, assets: Array<{ preview: string }>, facetValues: Array<{ id: string, name: string, facet: { id: string, name: string } }>, collections: Array<{ id: string, name: string, slug: string, breadcrumbs: Array<{ id: string }>, customFields: { legacyId: number | null } | null, parent: { name: string, slug: string, customFields: { legacyId: number | null } | null } | null }>, variants: Array<{ id: string, name: string, sku: string, priceWithTax: number, stockLevel: string, options: Array<{ name: string }> }>, featuredAsset: { preview: string } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null }> } };
 
-export type CategoryLinkFragment = { id: string, name: string, slug: string, customFields: { legacyId: number | null } | null };
+export type CategoryLinkFragment = { id: string, name: string, slug: string, featuredAsset: { preview: string } | null, customFields: { legacyId: number | null } | null };
 
 export type CollectionByLegacyIdQueryVariables = Exact<{
   legacyId: number;
 }>;
 
 
-export type CollectionByLegacyIdQuery = { collections: { items: Array<{ id: string, name: string, slug: string, description: string, customFields: { legacyId: number | null, metaTitle: string | null, metaDescription: string | null } | null, parent: { id: string, name: string, slug: string, parent: { id: string, name: string, slug: string, customFields: { legacyId: number | null } | null } | null, customFields: { legacyId: number | null } | null } | null, children: Array<{ position: number, id: string, name: string, slug: string, customFields: { legacyId: number | null } | null }> | null }> } };
+export type CollectionByLegacyIdQuery = { collections: { items: Array<{ id: string, name: string, slug: string, description: string, featuredAsset: { preview: string } | null, customFields: { legacyId: number | null, metaTitle: string | null, metaDescription: string | null } | null, parent: { id: string, name: string, slug: string, parent: { id: string, name: string, slug: string, featuredAsset: { preview: string } | null, customFields: { legacyId: number | null } | null } | null, featuredAsset: { preview: string } | null, customFields: { legacyId: number | null } | null } | null, children: Array<{ position: number, id: string, name: string, slug: string, featuredAsset: { preview: string } | null, customFields: { legacyId: number | null } | null }> | null }> } };
 
 export type ListingFacetsQueryVariables = Exact<{
   input: SearchInput;
@@ -552,7 +552,7 @@ export type SitemapCollectionsQuery = { collections: { items: Array<{ slug: stri
 export type CategoryTreeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type CategoryTreeQuery = { collections: { items: Array<{ id: string, name: string, slug: string, featuredAsset: { preview: string } | null, customFields: { legacyId: number | null } | null, children: Array<{ id: string, name: string, slug: string, position: number, customFields: { legacyId: number | null } | null }> | null }> } };
+export type CategoryTreeQuery = { collections: { items: Array<{ id: string, name: string, slug: string, featuredAsset: { preview: string } | null, customFields: { legacyId: number | null } | null, children: Array<{ id: string, name: string, slug: string, position: number, featuredAsset: { preview: string } | null, customFields: { legacyId: number | null } | null }> | null }> } };
 
 export type QuoteProductQueryVariables = Exact<{
   id: string | number;
@@ -752,6 +752,9 @@ export const CategoryLinkFragmentDoc = new TypedDocumentString(`
   id
   name
   slug
+  featuredAsset {
+    preview
+  }
   customFields {
     legacyId
   }
@@ -1373,6 +1376,9 @@ export const CollectionByLegacyIdDocument = new TypedDocumentString(`
       name
       slug
       description
+      featuredAsset {
+        preview
+      }
       customFields {
         legacyId
         metaTitle
@@ -1395,6 +1401,9 @@ export const CollectionByLegacyIdDocument = new TypedDocumentString(`
   id
   name
   slug
+  featuredAsset {
+    preview
+  }
   customFields {
     legacyId
   }
@@ -1564,6 +1573,9 @@ export const CategoryTreeDocument = new TypedDocumentString(`
         id
         name
         slug
+        featuredAsset {
+          preview
+        }
         position
         customFields {
           legacyId

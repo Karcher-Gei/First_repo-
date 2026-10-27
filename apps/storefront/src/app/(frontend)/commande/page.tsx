@@ -39,13 +39,17 @@ export default async function CheckoutPage() {
 
   return (
     <section className="space-y-6">
-      <h1 className="text-3xl font-black uppercase">Commande</h1>
+      <h1 className="font-heading text-4xl font-extrabold uppercase leading-none md:text-5xl">
+        Commande
+      </h1>
       <div className="grid gap-8 lg:grid-cols-[1fr_22rem]">
         <ActionForm action={placeOrder} className="space-y-8">
           <input type="hidden" name="signedIn" value={activeCustomer ? '1' : '0'} />
 
           <fieldset className="space-y-4">
-            <legend className="mb-2 text-lg font-bold">Vos coordonnées</legend>
+            <legend className="mb-2 font-heading text-2xl font-bold uppercase">
+              Vos coordonnées
+            </legend>
             {activeCustomer ? (
               <p className="text-sm">
                 Connecté en tant que <strong>{activeCustomer.emailAddress}</strong>.
@@ -92,7 +96,9 @@ export default async function CheckoutPage() {
           </fieldset>
 
           <fieldset className="space-y-4">
-            <legend className="mb-2 text-lg font-bold">Adresse de livraison</legend>
+            <legend className="mb-2 font-heading text-2xl font-bold uppercase">
+              Adresse de livraison
+            </legend>
             <AddressFields
               withName={Boolean(activeCustomer)}
               values={{
@@ -106,7 +112,7 @@ export default async function CheckoutPage() {
           </fieldset>
 
           <fieldset className="space-y-3">
-            <legend className="mb-2 text-lg font-bold">Livraison</legend>
+            <legend className="mb-2 font-heading text-2xl font-bold uppercase">Livraison</legend>
             {eligibleShippingMethods.length === 0 ? (
               <p className="text-sm text-danger">
                 Aucun mode de livraison disponible pour cette commande.
@@ -143,7 +149,7 @@ export default async function CheckoutPage() {
           </fieldset>
 
           <fieldset className="space-y-3">
-            <legend className="mb-2 text-lg font-bold">Paiement</legend>
+            <legend className="mb-2 font-heading text-2xl font-bold uppercase">Paiement</legend>
             {paymentMethods.map((method, index) => (
               <label
                 key={method.code}

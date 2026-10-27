@@ -23,7 +23,9 @@ export default async function ConfirmationPage({ params }: { params: Promise<{ c
       <section className="space-y-4">
         {/* Checks again until the webhook has settled the payment. */}
         <meta httpEquiv="refresh" content="5" />
-        <h1 className="text-3xl font-black uppercase">Paiement en cours de confirmation</h1>
+        <h1 className="font-heading text-4xl font-extrabold uppercase leading-none md:text-5xl">
+          Paiement en cours de confirmation
+        </h1>
         <p>
           Nous attendons la confirmation de Konnect pour la commande <strong>{order.code}</strong>.
           Cette page se met à jour automatiquement.
@@ -41,7 +43,9 @@ export default async function ConfirmationPage({ params }: { params: Promise<{ c
   return (
     <section className="space-y-6">
       <header className="space-y-2">
-        <h1 className="text-3xl font-black uppercase">Merci pour votre commande</h1>
+        <h1 className="font-heading text-4xl font-extrabold uppercase leading-none md:text-5xl">
+          Merci pour votre commande
+        </h1>
         <p>
           Votre commande <strong>{order.code}</strong> est confirmée. Un e-mail de confirmation a
           été envoyé à {order.customer?.emailAddress}.

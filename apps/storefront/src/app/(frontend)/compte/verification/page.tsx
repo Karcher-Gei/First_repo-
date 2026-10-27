@@ -15,7 +15,9 @@ export default async function VerifyPage({
   const { token } = await searchParams;
   return (
     <section className="max-w-xl space-y-4">
-      <h1 className="text-3xl font-black uppercase">Activer mon compte</h1>
+      <h1 className="font-heading text-4xl font-extrabold uppercase leading-none md:text-5xl">
+        Activer mon compte
+      </h1>
       {token ? (
         <ActionForm action={verifyAccount}>
           <input type="hidden" name="token" value={token} />

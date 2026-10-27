@@ -15,7 +15,9 @@ export default async function ConfirmEmailPage({
   const { token } = await searchParams;
   return (
     <section className="max-w-xl space-y-4">
-      <h1 className="text-3xl font-black uppercase">Confirmer mon adresse e-mail</h1>
+      <h1 className="font-heading text-4xl font-extrabold uppercase leading-none md:text-5xl">
+        Confirmer mon adresse e-mail
+      </h1>
       {token ? (
         <ActionForm action={confirmEmailChange}>
           <input type="hidden" name="token" value={token} />

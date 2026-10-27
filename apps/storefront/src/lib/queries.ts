@@ -112,6 +112,9 @@ graphql(`
     id
     name
     slug
+    featuredAsset {
+      preview
+    }
     customFields {
       legacyId
     }
@@ -126,6 +129,9 @@ export const COLLECTION_BY_LEGACY_ID = graphql(`
         name
         slug
         description
+        featuredAsset {
+          preview
+        }
         customFields {
           legacyId
           metaTitle
@@ -278,6 +284,9 @@ export const CATEGORY_TREE = graphql(`
           id
           name
           slug
+          featuredAsset {
+            preview
+          }
           position
           customFields {
             legacyId

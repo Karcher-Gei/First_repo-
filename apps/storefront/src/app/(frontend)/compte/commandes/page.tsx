@@ -29,7 +29,9 @@ export default async function OrdersPage({
 
   return (
     <section className="space-y-6">
-      <h1 className="text-3xl font-black uppercase">Mes commandes</h1>
+      <h1 className="font-heading text-4xl font-extrabold uppercase leading-none md:text-5xl">
+        Mes commandes
+      </h1>
       <AccountNav current="/compte/commandes" />
       {orders.items.length === 0 ? (
         <p>Vous n’avez pas encore passé de commande.</p>

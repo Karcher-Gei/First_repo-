@@ -3,7 +3,9 @@ import Link from 'next/link';
 export default function NotFound() {
   return (
     <section className="mx-auto max-w-xl space-y-6 py-16 text-center">
-      <h1 className="text-3xl font-black">Page introuvable</h1>
+      <h1 className="font-heading text-4xl font-extrabold uppercase leading-none">
+        Page introuvable
+      </h1>
       <p className="text-ink-muted">Cette page n’existe pas ou a été déplacée.</p>
       <form action="/recherche" role="search" className="mx-auto flex max-w-md gap-2">
         <label htmlFor="not-found-search" className="sr-only">

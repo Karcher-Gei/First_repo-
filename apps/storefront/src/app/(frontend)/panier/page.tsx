@@ -18,7 +18,9 @@ export default async function CartPage() {
   if (!activeOrder || lines.length === 0) {
     return (
       <section className="space-y-4">
-        <h1 className="text-3xl font-black uppercase">Panier</h1>
+        <h1 className="font-heading text-4xl font-extrabold uppercase leading-none md:text-5xl">
+          Panier
+        </h1>
         <p>Votre panier est vide.</p>
         <Link href="/" className="font-semibold underline">
           Continuer mes achats
@@ -29,7 +31,9 @@ export default async function CartPage() {
 
   return (
     <section className="space-y-6">
-      <h1 className="text-3xl font-black uppercase">Panier</h1>
+      <h1 className="font-heading text-4xl font-extrabold uppercase leading-none md:text-5xl">
+        Panier
+      </h1>
       <div className="grid gap-8 lg:grid-cols-[1fr_20rem]">
         <ul className="divide-y divide-line rounded-card border border-line">
           {lines.map((line) => {

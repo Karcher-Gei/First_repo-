@@ -6,4 +6,44 @@
 
 body {
   @apply bg-surface font-sans text-ink antialiased;
+  /* Full-bleed sections reach the viewport edges without a horizontal scrollbar. */
+  overflow-x: clip;
+}
+
+/* A section spanning the whole viewport width from inside the centred page container. */
+@utility full-bleed {
+  margin-inline: calc(50% - 50vw);
+}
+
+/* Kärcher's slanted yellow shape, used as an accent behind headings and in banners. */
+@utility slant {
+  clip-path: polygon(12% 0, 100% 0, 88% 100%, 0 100%);
+}
+
+/* HTML from the catalog and the CMS (product and category descriptions). */
+.rich-text {
+  @apply space-y-4 leading-relaxed;
+}
+.rich-text h2,
+.rich-text h3 {
+  @apply pt-2 font-heading text-2xl font-bold uppercase leading-tight;
+}
+.rich-text ul {
+  @apply list-disc space-y-1 pl-5;
+}
+.rich-text ol {
+  @apply list-decimal space-y-1 pl-5;
+}
+.rich-text a {
+  @apply font-semibold underline;
+}
+.rich-text strong {
+  @apply font-bold;
+}
+.rich-text table {
+  @apply w-full text-sm;
+}
+.rich-text td,
+.rich-text th {
+  @apply border-b border-line px-2 py-1.5 text-left;
 }

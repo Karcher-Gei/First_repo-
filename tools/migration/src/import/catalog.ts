@@ -150,6 +150,7 @@ export async function importCatalog(
     await ps.categories(),
     await ps.categoryProducts(),
     productIds,
+    options.images,
     report,
   );
   return { productIds };
@@ -291,13 +292,16 @@ async function importImages(
 }
 
 async function readImage(source: ImageSource, imageId: number): Promise<Uint8Array | null> {
-  const relative = imageRelativePath(imageId);
+  return readImageFile(source, imageRelativePath(imageId));
+}
+
+/** A file under the image source; "../c/12.jpg" reaches PrestaShop's category images next to img/p. */
+async function readImageFile(source: ImageSource, relative: string): Promise<Uint8Array | null> {
   if ('dir' in source) {
     return readFile(path.join(source.dir, relative)).catch(() => null);
   }
-  const response = await fetch(`${source.baseUrl.replace(/\/$/, '')}/${relative}`).catch(
-    () => null,
-  );
+  const url = new URL(relative, `${source.baseUrl.replace(/\/$/, '')}/`);
+  const response = await fetch(url).catch(() => null);
   return response?.ok ? new Uint8Array(await response.arrayBuffer()) : null;
 }
 
@@ -487,21 +491,41 @@ async function importCategories(
   categories: PsCategory[],
   assignments: { id_category: number; id_product: number }[],
   productIds: Map<number, string>,
+  images: ImageSource,
   report: Report,
 ): Promise<void> {
-  type Row = { id: string; customFields: { legacyId: number | null } | null };
+  type Row = {
+    id: string;
+    featuredAsset: { id: string } | null;
+    customFields: { legacyId: number | null } | null;
+  };
   const existing = new Map(
     (
       await admin.all<Row>(
-        `query ($skip: Int, $take: Int) { collections(options: { skip: $skip, take: $take }) { totalItems items { id customFields { legacyId } } } }`,
+        `query ($skip: Int, $take: Int) { collections(options: { skip: $skip, take: $take }) { totalItems items { id featuredAsset { id } customFields { legacyId } } } }`,
         (data: { collections: { items: Row[]; totalItems: number } }) => data.collections,
       )
     ).flatMap((row) =>
-      row.customFields?.legacyId != null ? [[row.customFields.legacyId, row.id]] : [],
+      row.customFields?.legacyId != null ? [[row.customFields.legacyId, row]] : [],
     ),
   );
   const productsOf = groupBy(assignments, (a) => a.id_category);
   const collectionIds = new Map<number, string>();
+
+  const categoryImage = async (category: PsCategory): Promise<string | undefined> => {
+    const file = await readImageFile(images, `../c/${category.id_category}.jpg`);
+    if (!file) {
+      return undefined;
+    }
+    try {
+      const id = await admin.uploadAsset(file, `${category.link_rewrite}.jpg`);
+      report.count('category images uploaded');
+      return id;
+    } catch (error) {
+      report.warn(`Category ${category.id_category} image: ${(error as Error).message}`);
+      return undefined;
+    }
+  };
 
   // Parents first: categories come ordered by depth, then position.
   for (const category of categories) {
@@ -545,19 +569,22 @@ async function importCategories(
     };
     try {
       const found = existing.get(category.id_category);
+      // The category image (img/c/{id}.jpg) is uploaded once; later runs keep the asset.
+      const imageAssetId = found?.featuredAsset ? undefined : await categoryImage(category);
+      const withImage = imageAssetId
+        ? { ...input, featuredAssetId: imageAssetId, assetIds: [imageAssetId] }
+        : input;
       if (found) {
         await admin.gql(
           `mutation ($input: UpdateCollectionInput!) { updateCollection(input: $input) { id } }`,
-          {
-            input: { ...input, id: found },
-          },
+          { input: { ...withImage, id: found.id } },
         );
-        collectionIds.set(category.id_category, found);
+        collectionIds.set(category.id_category, found.id);
         report.count('categories updated');
       } else {
         const { createCollection } = await admin.gql<{ createCollection: { id: string } }>(
           `mutation ($input: CreateCollectionInput!) { createCollection(input: $input) { id } }`,
-          { input: { ...input, parentId: collectionIds.get(category.id_parent) } },
+          { input: { ...withImage, parentId: collectionIds.get(category.id_parent) } },
         );
         collectionIds.set(category.id_category, createCollection.id);
         report.count('categories created');

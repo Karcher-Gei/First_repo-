@@ -21,7 +21,9 @@ export default async function LoginPage({
   return (
     <section className="grid gap-10 md:grid-cols-2">
       <div className="space-y-4">
-        <h1 className="text-3xl font-black uppercase">Connexion</h1>
+        <h1 className="font-heading text-4xl font-extrabold uppercase leading-none md:text-5xl">
+          Connexion
+        </h1>
         <ActionForm action={login}>
           <input type="hidden" name="retour" value={returnTo} />
           <Field label="E-mail" name="emailAddress" type="email" required autoComplete="email" />
@@ -39,7 +41,7 @@ export default async function LoginPage({
         </Link>
       </div>
       <div className="h-fit space-y-3 rounded-card bg-surface-muted p-6">
-        <h2 className="text-lg font-bold">Nouveau client ?</h2>
+        <h2 className="font-heading text-2xl font-bold uppercase">Nouveau client ?</h2>
         <p className="text-sm">
           Créez un compte pour suivre vos commandes et enregistrer vos adresses.
         </p>

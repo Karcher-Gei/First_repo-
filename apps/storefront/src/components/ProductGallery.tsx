@@ -11,7 +11,7 @@ export function ProductGallery({ images, alt }: { images: { preview: string }[];
 
   return (
     <div className="space-y-3">
-      <div className="relative aspect-square overflow-hidden rounded-card border border-line bg-surface">
+      <div className="relative aspect-square overflow-hidden rounded-card bg-stage">
         {main ? (
           <Image
             src={`${main.preview}?preset=large`}
@@ -19,7 +19,7 @@ export function ProductGallery({ images, alt }: { images: { preview: string }[];
             fill
             priority
             sizes="(min-width: 768px) 50vw, 100vw"
-            className="object-contain p-4"
+            className="object-contain p-8 mix-blend-multiply md:p-12"
           />
         ) : (
           <span
@@ -40,7 +40,7 @@ export function ProductGallery({ images, alt }: { images: { preview: string }[];
                 aria-label={`Image ${index + 1} sur ${images.length}`}
                 aria-pressed={index === current}
                 className={cn(
-                  'relative block size-20 overflow-hidden rounded-card border-2 bg-surface',
+                  'relative block size-20 overflow-hidden rounded-card border-2 bg-stage',
                   index === current ? 'border-ink' : 'border-line hover:border-ink-muted',
                 )}
               >
@@ -49,7 +49,7 @@ export function ProductGallery({ images, alt }: { images: { preview: string }[];
                   alt=""
                   fill
                   sizes="80px"
-                  className="object-contain p-1"
+                  className="object-contain p-1.5 mix-blend-multiply"
                 />
               </button>
             </li>

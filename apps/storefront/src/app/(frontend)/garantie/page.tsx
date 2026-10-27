@@ -17,7 +17,9 @@ export default async function WarrantyPage() {
   return (
     <section className="max-w-2xl space-y-6">
       <header className="space-y-2">
-        <h1 className="text-3xl font-black uppercase">Enregistrer ma garantie</h1>
+        <h1 className="font-heading text-4xl font-extrabold uppercase leading-none md:text-5xl">
+          Enregistrer ma garantie
+        </h1>
         <p>
           La référence (par exemple 1.673-535.0) et le numéro de série se trouvent sur la plaque
           signalétique de la machine.

@@ -47,7 +47,7 @@ export default async function ContentPage({ params }: Props) {
   }
   return (
     <article className="mx-auto max-w-3xl space-y-6">
-      <h1 className="text-3xl font-black">{page.title}</h1>
+      <h1 className="font-heading text-4xl font-extrabold uppercase leading-none">{page.title}</h1>
       {page.content ? (
         <div className="space-y-4 leading-relaxed">
           <RichText data={page.content} />

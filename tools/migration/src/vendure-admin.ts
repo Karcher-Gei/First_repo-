@@ -50,8 +50,12 @@ export class VendureAdmin {
     });
   }
 
-  /** Uploads one image as an Asset carrying its PrestaShop image id. */
-  async uploadAsset(file: Uint8Array, fileName: string, legacyImageId: number): Promise<string> {
+  /** Uploads one image as an Asset, carrying its PrestaShop image id for product images. */
+  async uploadAsset(
+    file: Uint8Array,
+    fileName: string,
+    legacyImageId: number | null = null,
+  ): Promise<string> {
     const form = new FormData();
     form.append(
       'operations',
@@ -71,7 +75,7 @@ export class VendureAdmin {
     }>(form, { 'apollo-require-preflight': 'true' });
     const asset = createAssets[0];
     if (!asset?.id) {
-      throw new Error(`Upload of image ${legacyImageId} failed: ${asset?.message ?? 'no result'}`);
+      throw new Error(`Upload of ${fileName} failed: ${asset?.message ?? 'no result'}`);
     }
     return asset.id;
   }

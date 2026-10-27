@@ -10,7 +10,9 @@ export const metadata: Metadata = { title: 'Créer un compte' };
 export default function RegisterPage() {
   return (
     <section className="max-w-xl space-y-4">
-      <h1 className="text-3xl font-black uppercase">Créer un compte</h1>
+      <h1 className="font-heading text-4xl font-extrabold uppercase leading-none md:text-5xl">
+        Créer un compte
+      </h1>
       <ActionForm action={register}>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Prénom" name="firstName" required autoComplete="given-name" />

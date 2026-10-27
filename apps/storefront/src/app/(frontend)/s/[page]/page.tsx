@@ -24,10 +24,9 @@ const PAGES: Record<StaticPageKey, { title: string; collectionSlug?: string }> =
   stores: { title: 'Nos magasins' },
 };
 
-const PATH_OF = Object.fromEntries(Object.entries(STATIC_PAGES).map(([path, key]) => [key, path])) as Record<
-  StaticPageKey,
-  string
->;
+const PATH_OF = Object.fromEntries(
+  Object.entries(STATIC_PAGES).map(([path, key]) => [key, path]),
+) as Record<StaticPageKey, string>;
 
 function isPageKey(value: string): value is StaticPageKey {
   return value in PAGES;
@@ -50,7 +49,9 @@ export default async function StaticPage({ params, searchParams }: Props) {
 
   return (
     <section className="space-y-6">
-      <h1 className="text-3xl font-black uppercase">{title}</h1>
+      <h1 className="font-heading text-4xl font-extrabold uppercase leading-none md:text-5xl">
+        {title}
+      </h1>
       {collectionSlug ? <CollectionGrid slug={collectionSlug} /> : null}
       {page === 'stores' || page === 'contact' ? <StoreList /> : null}
       {page === 'contact' ? <ContactForm sent={envoye === '1'} /> : null}
@@ -66,8 +67,12 @@ async function CollectionGrid({ slug }: { slug: string }) {
   }
   return (
     <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-      {items.map(variant => (
-        <ProductCard key={variant.id} product={variant.product} priceWithTax={variant.priceWithTax} />
+      {items.map((variant) => (
+        <ProductCard
+          key={variant.id}
+          product={variant.product}
+          priceWithTax={variant.priceWithTax}
+        />
       ))}
     </div>
   );
@@ -78,11 +83,13 @@ async function StoreList() {
   const { docs } = await cms.find({ collection: 'stores', limit: 20, sort: 'order' });
   return (
     <div className="grid gap-6 md:grid-cols-2">
-      {docs.map(store => (
+      {docs.map((store) => (
         <address key={store.id} className="rounded-card border border-line p-5 not-italic">
           <h2 className="mb-2 font-bold">{store.name}</h2>
           <p className="whitespace-pre-line text-sm">{store.address}</p>
-          {store.openingHours ? <p className="mt-2 whitespace-pre-line text-sm text-ink-muted">{store.openingHours}</p> : null}
+          {store.openingHours ? (
+            <p className="mt-2 whitespace-pre-line text-sm text-ink-muted">{store.openingHours}</p>
+          ) : null}
           {store.phone ? <p className="mt-2 text-sm font-semibold">Tél. {store.phone}</p> : null}
         </address>
       ))}

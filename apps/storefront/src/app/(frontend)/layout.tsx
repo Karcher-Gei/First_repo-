@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Barlow_Condensed, Roboto } from 'next/font/google';
 import type { ReactNode } from 'react';
 
 import { Footer } from '@/components/Footer';
@@ -7,15 +8,26 @@ import { SITE_NAME, SITE_URL } from '@/lib/site';
 
 import './globals.css';
 
+const body = Roboto({ subsets: ['latin'], weight: ['400', '500', '700'], variable: '--font-body' });
+const display = Barlow_Condensed({
+  subsets: ['latin'],
+  weight: ['600', '700', '800'],
+  variable: '--font-display',
+});
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: `${SITE_NAME} : Distributeur officiel aux meilleurs prix`, template: `%s | ${SITE_NAME}` },
-  description: 'Karcher Tunisie : nettoyeurs haute pression, aspirateurs et équipements de nettoyage Kärcher.',
+  title: {
+    default: `${SITE_NAME} : Distributeur officiel aux meilleurs prix`,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description:
+    'Karcher Tunisie : nettoyeurs haute pression, aspirateurs et équipements de nettoyage Kärcher.',
 };
 
 export default function FrontendLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="fr">
+    <html lang="fr" className={`${body.variable} ${display.variable}`}>
       <body>
         <a
           href="#contenu"

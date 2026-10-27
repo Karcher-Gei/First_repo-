@@ -30,7 +30,9 @@ export default async function PaymentPage({
 
   return (
     <section className="max-w-xl space-y-6">
-      <h1 className="text-3xl font-black uppercase">Paiement</h1>
+      <h1 className="font-heading text-4xl font-extrabold uppercase leading-none md:text-5xl">
+        Paiement
+      </h1>
       {echec ? (
         <p
           role="alert"

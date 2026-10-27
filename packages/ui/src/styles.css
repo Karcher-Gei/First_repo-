@@ -11,12 +11,18 @@
   --color-ink-muted: #5c5c5a;
   --color-surface: #ffffff;
   --color-surface-muted: #f4f4f2;
+  /* Light grey stage behind product images, as on kaercher.com */
+  --color-stage: #f0f0ee;
+  /* Anthracite blocks and the footer */
+  --color-anthracite: #2b2b2a;
   --color-line: #dcdcd8;
   --color-success: #2e7d32;
   --color-danger: #c62828;
   --color-warning: #b26a00;
 
-  --font-sans: 'Roboto', ui-sans-serif, system-ui, sans-serif;
+  /* Set by the app (next/font): Roboto for text, Barlow Condensed for headlines. */
+  --font-sans: var(--font-body, 'Roboto'), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-display, 'Barlow Condensed'), var(--font-body, 'Roboto'), sans-serif;
 
   --radius-card: 0.5rem;
 }

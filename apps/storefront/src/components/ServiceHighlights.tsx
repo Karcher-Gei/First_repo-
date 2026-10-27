@@ -42,9 +42,23 @@ export function ServiceHighlights({ compact = false }: { compact?: boolean }) {
       {ITEMS.map(({ Icon, title, text, href }) => {
         const body = (
           <>
-            <Icon className="shrink-0" />
+            <span
+              className={cn(
+                'flex shrink-0 items-center justify-center rounded-full bg-brand',
+                compact ? 'size-9' : 'size-12',
+              )}
+            >
+              <Icon width={compact ? 18 : 24} height={compact ? 18 : 24} />
+            </span>
             <span>
-              <span className="block text-sm font-bold">{title}</span>
+              <span
+                className={cn(
+                  'block font-bold',
+                  compact ? 'text-sm' : 'font-heading text-lg uppercase leading-tight',
+                )}
+              >
+                {title}
+              </span>
               <span className="block text-xs text-ink-muted">{text}</span>
             </span>
           </>
@@ -54,12 +68,12 @@ export function ServiceHighlights({ compact = false }: { compact?: boolean }) {
             {href ? (
               <Link
                 href={href}
-                className="flex h-full items-start gap-3 rounded-card bg-surface-muted p-4 hover:bg-line/60"
+                className="flex h-full items-center gap-3 rounded-card p-4 ring-1 ring-line transition-colors hover:bg-surface-muted"
               >
                 {body}
               </Link>
             ) : (
-              <div className="flex h-full items-start gap-3 rounded-card bg-surface-muted p-4">
+              <div className="flex h-full items-center gap-3 rounded-card p-4 ring-1 ring-line">
                 {body}
               </div>
             )}

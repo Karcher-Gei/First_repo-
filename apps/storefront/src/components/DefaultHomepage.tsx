@@ -4,85 +4,176 @@ import Link from 'next/link';
 import { featuredProducts } from '@/lib/catalog';
 import type { MenuCategory } from '@/lib/navigation';
 
+import { ArrowLink, Container, CtaLink, SectionHeading } from './brand';
+import { LockIcon, ShieldIcon, TruckIcon, WrenchIcon } from './icons';
 import { ProductCard } from './ProductCard';
+import { ProductRail } from './ProductRail';
 import { ServiceHighlights } from './ServiceHighlights';
 
 /** Homepage shown until staff build one from blocks in the CMS (Homepage global). */
 export async function DefaultHomepage({ categories }: { categories: MenuCategory[] }) {
-  const products = await featuredProducts(8);
+  const products = await featuredProducts(12);
+  const heroProduct = products.find((p) => p.product.featuredAsset)?.product;
   const first = categories[0];
+  const subcategories = categories.flatMap((c) => c.children);
 
   return (
-    <div className="space-y-12">
-      <section className="overflow-hidden rounded-card bg-ink text-white">
-        <div className="space-y-4 border-l-8 border-brand p-8 md:p-12">
-          <p className="text-sm font-bold uppercase tracking-widest text-brand">
-            Distributeur officiel Kärcher
-          </p>
-          <h1 className="text-3xl font-black uppercase leading-tight md:text-5xl">
-            Le nettoyage, version Kärcher
-          </h1>
-          <p className="max-w-xl text-white/80">
-            Nettoyeurs haute pression, aspirateurs, balayeuses : l’équipement de nettoyage des
-            particuliers et des professionnels.
-          </p>
-          <div className="flex flex-wrap gap-3 pt-2">
-            {first ? (
-              <Link
-                href={first.href}
-                className="rounded-card bg-brand px-5 py-3 text-sm font-semibold uppercase tracking-wide text-ink hover:bg-brand-dark"
-              >
-                Voir les produits
-              </Link>
-            ) : null}
-            <Link
-              href="/devis"
-              className="rounded-card border border-white/40 px-5 py-3 text-sm font-semibold uppercase tracking-wide hover:border-brand hover:text-brand"
-            >
-              Devis professionnel
-            </Link>
+    <div className="-mt-6 space-y-16 md:-mt-8 md:space-y-20">
+      {/* Hero: anthracite stage with Kärcher's slanted yellow shapes */}
+      <section className="full-bleed relative overflow-hidden bg-anthracite text-white">
+        <div
+          aria-hidden="true"
+          className="slant absolute -right-24 top-0 hidden h-full w-[46%] bg-brand md:block"
+        />
+        <div
+          aria-hidden="true"
+          className="slant absolute right-[38%] top-0 hidden h-full w-16 bg-brand/25 md:block"
+        />
+        <Container className="relative grid items-center gap-10 py-14 md:grid-cols-[1.1fr_1fr] md:py-20">
+          <div className="space-y-6">
+            <p className="text-sm font-bold uppercase tracking-[0.25em] text-brand">
+              Distributeur officiel Kärcher en Tunisie
+            </p>
+            <h1 className="font-heading text-5xl font-extrabold uppercase leading-[0.95] md:text-7xl">
+              La puissance
+              <br />
+              du nettoyage
+            </h1>
+            <p className="max-w-lg text-lg text-white/75">
+              Nettoyeurs haute pression, aspirateurs, balayeuses : l’équipement de nettoyage des
+              particuliers et des professionnels.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              {first ? <CtaLink href={first.href}>Découvrir les produits</CtaLink> : null}
+              <CtaLink href="/devis" variant="outline">
+                Devis professionnel
+              </CtaLink>
+            </div>
+            <ul className="flex flex-wrap gap-x-6 gap-y-2 pt-2 text-sm text-white/70">
+              <li className="flex items-center gap-2">
+                <ShieldIcon width={18} height={18} className="text-brand" /> Produits d’origine
+              </li>
+              <li className="flex items-center gap-2">
+                <WrenchIcon width={18} height={18} className="text-brand" /> Garantie et SAV
+              </li>
+              <li className="flex items-center gap-2">
+                <LockIcon width={18} height={18} className="text-brand" /> Paiement sécurisé
+              </li>
+            </ul>
           </div>
-        </div>
+          {heroProduct?.featuredAsset ? (
+            <div className="relative mx-auto aspect-square w-full max-w-md">
+              <div className="absolute inset-[10%] rounded-full bg-white shadow-[0_0_0_18px_rgba(255,255,255,0.12)]" />
+              <Image
+                src={`${heroProduct.featuredAsset.preview}?preset=large`}
+                alt={heroProduct.name}
+                fill
+                priority
+                sizes="(min-width: 768px) 40vw, 90vw"
+                className="object-contain p-16 mix-blend-multiply"
+              />
+            </div>
+          ) : null}
+        </Container>
       </section>
 
-      <ServiceHighlights />
-
+      {/* Home & garden / professional: the two big entry points, as on kaercher.com */}
       {categories.length > 0 ? (
-        <section className="space-y-4" aria-labelledby="home-categories">
-          <h2 id="home-categories" className="text-2xl font-black uppercase">
-            Nos catégories
-          </h2>
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {categories.map((category) => (
-              <li key={category.href} className="rounded-card border border-line p-5">
-                <Link href={category.href} className="group flex items-center gap-4">
-                  {category.image ? (
+        <section aria-label="Nos univers" className="grid gap-4 md:grid-cols-2">
+          {categories.slice(0, 2).map((category, index) => {
+            const dark = index === 1;
+            return (
+              <Link
+                key={category.href}
+                href={category.href}
+                className={`group relative flex min-h-72 overflow-hidden rounded-card p-8 md:min-h-80 ${
+                  dark ? 'bg-ink text-white' : 'bg-brand text-ink'
+                }`}
+              >
+                <div className="relative z-10 flex max-w-[62%] flex-col justify-between gap-6 sm:max-w-[55%]">
+                  <div className="space-y-2">
+                    <p className="text-xs font-bold uppercase tracking-[0.2em] opacity-70">
+                      {dark ? 'Gamme professionnelle' : 'Pour la maison'}
+                    </p>
+                    <h2 className="font-heading text-4xl font-extrabold uppercase leading-none md:text-5xl">
+                      {category.name}
+                    </h2>
+                    {category.children.length > 0 ? (
+                      <p className="text-sm opacity-80">
+                        {category.children
+                          .slice(0, 3)
+                          .map((c) => c.name)
+                          .join(' · ')}
+                      </p>
+                    ) : null}
+                  </div>
+                  <span className="inline-flex w-fit items-center gap-2 font-heading text-lg font-bold uppercase">
+                    Découvrir
+                    <span
+                      aria-hidden="true"
+                      className="transition-transform group-hover:translate-x-1"
+                    >
+                      →
+                    </span>
+                  </span>
+                </div>
+                {category.image ? (
+                  // Product photos are on white: blended into the yellow tile, on a light disc on the dark one.
+                  <span
+                    className={`absolute -bottom-10 -right-10 flex size-48 items-center justify-center rounded-full sm:size-72 md:size-80 ${
+                      dark ? 'bg-white/95' : ''
+                    }`}
+                  >
                     <Image
-                      src={`${category.image}?preset=thumb`}
+                      src={`${category.image}?preset=large`}
                       alt=""
-                      width={64}
-                      height={64}
-                      className="size-16 object-contain"
+                      width={420}
+                      height={420}
+                      className="size-36 object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-105 sm:size-56 md:size-64"
                     />
-                  ) : (
-                    <span aria-hidden="true" className="size-3 rounded-full bg-brand" />
-                  )}
-                  <span className="text-lg font-bold group-hover:underline">{category.name}</span>
-                </Link>
-                {category.children.length > 0 ? (
-                  <ul className="mt-3 flex flex-wrap gap-2">
-                    {category.children.map((child) => (
-                      <li key={child.href}>
-                        <Link
-                          href={child.href}
-                          className="inline-block rounded-full bg-surface-muted px-3 py-1 text-xs hover:bg-brand"
-                        >
-                          {child.name}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
+                  </span>
                 ) : null}
+              </Link>
+            );
+          })}
+        </section>
+      ) : null}
+
+      {subcategories.length > 0 ? (
+        <section aria-labelledby="home-categories">
+          <SectionHeading
+            id="home-categories"
+            kicker="Trouvez la bonne machine"
+            title="Nos catégories"
+          />
+          <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
+            {subcategories.map((category) => (
+              <li key={category.href}>
+                <Link
+                  href={category.href}
+                  className="group flex h-full flex-col overflow-hidden rounded-card bg-stage transition-shadow hover:shadow-lg"
+                >
+                  <div className="relative aspect-[4/3]">
+                    {category.image ? (
+                      <Image
+                        src={`${category.image}?preset=medium`}
+                        alt=""
+                        fill
+                        sizes="(min-width: 1024px) 20vw, (min-width: 768px) 33vw, 50vw"
+                        className="object-contain p-4 transition-transform duration-300 group-hover:scale-105"
+                      />
+                    ) : null}
+                  </div>
+                  <span className="flex items-center justify-between gap-2 bg-surface px-4 py-3 font-heading text-lg font-bold uppercase leading-tight">
+                    {category.name}
+                    <span
+                      aria-hidden="true"
+                      className="text-ink-muted transition-transform group-hover:translate-x-1"
+                    >
+                      →
+                    </span>
+                  </span>
+                </Link>
               </li>
             ))}
           </ul>
@@ -90,11 +181,14 @@ export async function DefaultHomepage({ categories }: { categories: MenuCategory
       ) : null}
 
       {products.length > 0 ? (
-        <section className="space-y-4" aria-labelledby="home-products">
-          <h2 id="home-products" className="text-2xl font-black uppercase">
-            Notre sélection
-          </h2>
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
+        <section aria-labelledby="home-products">
+          <SectionHeading
+            id="home-products"
+            kicker="Sélectionnés pour vous"
+            title="Notre sélection"
+            action={first ? { href: first.href, label: 'Tout le catalogue' } : undefined}
+          />
+          <ProductRail label="Notre sélection">
             {products.map(({ product, priceWithTax, from }) => (
               <ProductCard
                 key={product.id}
@@ -103,9 +197,72 @@ export async function DefaultHomepage({ categories }: { categories: MenuCategory
                 priceFrom={from}
               />
             ))}
-          </div>
+          </ProductRail>
         </section>
       ) : null}
+
+      {/* Professional quote banner */}
+      <section className="full-bleed relative overflow-hidden bg-brand">
+        <div
+          aria-hidden="true"
+          className="slant absolute -left-20 top-0 hidden h-full w-1/4 bg-ink md:block"
+        />
+        <Container className="relative grid items-center gap-6 py-12 md:grid-cols-[1fr_auto] md:py-14 md:pl-[28%]">
+          <div className="space-y-2">
+            <p className="text-xs font-bold uppercase tracking-[0.2em]">
+              Entreprises, collectivités, revendeurs
+            </p>
+            <h2 className="font-heading text-4xl font-extrabold uppercase leading-none md:text-5xl">
+              Un devis adapté à votre activité
+            </h2>
+            <p className="max-w-xl">
+              Grandes quantités, équipement de plusieurs sites, conseil sur la bonne machine : notre
+              équipe commerciale vous répond.
+            </p>
+          </div>
+          <CtaLink href="/devis" variant="dark">
+            Demander un devis
+          </CtaLink>
+        </Container>
+      </section>
+
+      <ServiceHighlights />
+
+      <section aria-label="Après-vente" className="grid gap-4 md:grid-cols-2">
+        <div className="flex flex-col justify-between gap-6 rounded-card bg-stage p-8">
+          <div className="space-y-2">
+            <WrenchIcon width={32} height={32} />
+            <h2 className="font-heading text-3xl font-extrabold uppercase leading-none">
+              Enregistrez votre garantie
+            </h2>
+            <p className="text-ink-muted">
+              Référence, numéro de série et date d’achat : enregistrez votre machine Kärcher en deux
+              minutes.
+            </p>
+          </div>
+          <ArrowLink href="/garantie">Enregistrer ma machine</ArrowLink>
+        </div>
+        <div className="flex flex-col justify-between gap-6 rounded-card bg-anthracite p-8 text-white">
+          <div className="space-y-2">
+            <TruckIcon width={32} height={32} className="text-brand" />
+            <h2 className="font-heading text-3xl font-extrabold uppercase leading-none">
+              Conseil et service après-vente
+            </h2>
+            <p className="text-white/70">
+              Une question sur un produit, une pièce ou une réparation ? Écrivez-nous ou passez en
+              magasin.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-6">
+            <ArrowLink href="/nous-contacter" inverted>
+              Nous contacter
+            </ArrowLink>
+            <ArrowLink href="/magasins" inverted>
+              Nos magasins
+            </ArrowLink>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

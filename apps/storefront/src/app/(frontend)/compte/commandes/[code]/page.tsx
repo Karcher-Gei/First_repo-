@@ -18,7 +18,9 @@ export default async function OrderPage({ params }: { params: Promise<{ code: st
   }
   return (
     <section className="space-y-6">
-      <h1 className="text-3xl font-black uppercase">Commande {order.code}</h1>
+      <h1 className="font-heading text-4xl font-extrabold uppercase leading-none md:text-5xl">
+        Commande {order.code}
+      </h1>
       <AccountNav current="/compte/commandes" />
       <p>
         Statut : <strong>{orderStateLabel(order.state)}</strong>

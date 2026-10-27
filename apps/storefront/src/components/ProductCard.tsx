@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { productHref } from '@/lib/paths';
 import type { ProductSummary } from '@/lib/queries';
 
+/** Product tile: image on the grey stage, name, price; the whole tile links to the product. */
 export function ProductCard({
   product,
   priceWithTax,
@@ -20,35 +21,50 @@ export function ProductCard({
     return null;
   }
   return (
-    <article className="group relative flex flex-col rounded-card border border-line bg-surface p-3 transition-shadow hover:shadow-md sm:p-4">
-      <div className="relative mb-3 aspect-square overflow-hidden rounded-card bg-surface-muted">
+    <article className="group relative flex flex-col overflow-hidden rounded-card bg-surface ring-1 ring-line transition-all hover:-translate-y-0.5 hover:shadow-xl hover:ring-ink/20">
+      <div className="relative aspect-square bg-stage">
         {product.featuredAsset ? (
           <Image
             src={`${product.featuredAsset.preview}?preset=medium`}
             alt=""
             fill
             sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
-            className="object-contain p-2 transition-transform group-hover:scale-105"
+            className="object-contain p-5 mix-blend-multiply transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
           <span
             aria-hidden="true"
-            className="absolute inset-0 flex items-center justify-center text-2xl font-black uppercase text-line"
+            className="absolute inset-0 flex items-center justify-center font-heading text-3xl font-extrabold uppercase text-line"
           >
             Kärcher
           </span>
         )}
+        {priceFrom ? (
+          <span className="absolute left-3 top-3 rounded-full bg-surface px-2.5 py-0.5 text-xs font-semibold shadow-sm">
+            Plusieurs versions
+          </span>
+        ) : null}
       </div>
-      <h3 className="flex-1 text-sm font-semibold leading-snug">
-        {/* The link covers the whole card; the title is its accessible name. */}
-        <Link href={href} className="after:absolute after:inset-0 group-hover:underline">
-          {product.name}
-        </Link>
-      </h3>
-      <p className="mt-2 text-sm">
-        {priceFrom ? <span className="text-ink-muted">À partir de </span> : null}
-        <Price value={priceWithTax} />
-      </p>
+      <div className="flex flex-1 flex-col gap-3 p-4">
+        <h3 className="flex-1 font-semibold leading-snug">
+          {/* The link covers the whole card; the title is its accessible name. */}
+          <Link href={href} className="after:absolute after:inset-0">
+            {product.name}
+          </Link>
+        </h3>
+        <div className="flex items-end justify-between gap-2">
+          <p className="text-lg leading-tight">
+            {priceFrom ? <span className="block text-xs text-ink-muted">À partir de</span> : null}
+            <Price value={priceWithTax} />
+          </p>
+          <span
+            aria-hidden="true"
+            className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand text-lg transition-transform group-hover:translate-x-0.5"
+          >
+            →
+          </span>
+        </div>
+      </div>
     </article>
   );
 }

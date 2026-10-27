@@ -9,7 +9,7 @@ export interface MenuCategory {
   name: string;
   href: string;
   image: string | null;
-  children: { name: string; href: string }[];
+  children: { name: string; href: string; image: string | null }[];
 }
 
 export interface MenuLink {
@@ -29,7 +29,9 @@ export async function getCategoryMenu(): Promise<MenuCategory[]> {
       .sort((a, b) => a.position - b.position)
       .flatMap((child) => {
         const childHref = categoryHref(child);
-        return childHref ? [{ name: child.name, href: childHref }] : [];
+        return childHref
+          ? [{ name: child.name, href: childHref, image: child.featuredAsset?.preview ?? null }]
+          : [];
       });
     return [
       { name: collection.name, href, image: collection.featuredAsset?.preview ?? null, children },

@@ -55,7 +55,9 @@ export default async function QuotePage({
   return (
     <section className="max-w-2xl space-y-6">
       <header className="space-y-2">
-        <h1 className="text-3xl font-black uppercase">Demande de devis</h1>
+        <h1 className="font-heading text-4xl font-extrabold uppercase leading-none md:text-5xl">
+          Demande de devis
+        </h1>
         <p>
           Professionnels, collectivités, grandes quantités : recevez une offre adaptée de notre
           équipe commerciale.

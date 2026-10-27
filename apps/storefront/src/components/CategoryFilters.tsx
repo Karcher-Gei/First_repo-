@@ -68,7 +68,10 @@ export function CategoryFilters({
         ref={formRef}
         action={action}
         method="get"
-        className={cn('space-y-6 max-md:mt-4 md:block', open ? 'block' : 'hidden')}
+        className={cn(
+          'space-y-5 rounded-card p-5 ring-1 ring-line max-md:mt-4 md:block [&>fieldset]:border-t [&>fieldset]:border-line [&>fieldset]:pt-4',
+          open ? 'block' : 'hidden',
+        )}
         onChange={apply}
         onSubmit={(event) => {
           event.preventDefault();
@@ -79,7 +82,7 @@ export function CategoryFilters({
           <input key={name} type="hidden" name={name} value={value} />
         ))}
         <label className="block space-y-1">
-          <span className="text-sm font-bold">Trier par</span>
+          <span className="font-heading text-lg font-bold uppercase">Trier par</span>
           <select
             name="order"
             defaultValue={params.order ?? ''}
@@ -94,7 +97,7 @@ export function CategoryFilters({
           </select>
         </label>
         <fieldset className="space-y-2">
-          <legend className="text-sm font-bold">Disponibilité</legend>
+          <legend className="mb-1 font-heading text-lg font-bold uppercase">Disponibilité</legend>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" name="stock" value="1" defaultChecked={params.inStock} />
             En stock uniquement
@@ -102,7 +105,7 @@ export function CategoryFilters({
         </fieldset>
         {facets.map((facet) => (
           <fieldset key={facet.id} className="space-y-2">
-            <legend className="text-sm font-bold">{facet.name}</legend>
+            <legend className="mb-1 font-heading text-lg font-bold uppercase">{facet.name}</legend>
             {facet.values.map((value) => (
               <label key={value.id} className="flex items-center gap-2 text-sm">
                 <input

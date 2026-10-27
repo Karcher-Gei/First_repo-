@@ -18,7 +18,9 @@ export default function Error({
 
   return (
     <section className="mx-auto max-w-xl space-y-4 py-16 text-center">
-      <h1 className="text-3xl font-black">Un problème est survenu</h1>
+      <h1 className="font-heading text-4xl font-extrabold uppercase leading-none">
+        Un problème est survenu
+      </h1>
       <p className="text-ink-muted">
         La page n’a pas pu s’afficher. Réessayez dans un instant ; si le problème continue,
         contactez-nous.

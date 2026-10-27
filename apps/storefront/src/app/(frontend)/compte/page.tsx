@@ -17,14 +17,16 @@ export default async function AccountPage({
   return (
     <section className="space-y-8">
       <header className="space-y-2">
-        <h1 className="text-3xl font-black uppercase">Bonjour {customer.firstName}</h1>
+        <h1 className="font-heading text-4xl font-extrabold uppercase leading-none md:text-5xl">
+          Bonjour {customer.firstName}
+        </h1>
         {active ? <p className="text-success">Votre compte est activé. Bienvenue !</p> : null}
       </header>
       <AccountNav current="/compte" />
 
       <div className="grid gap-10 md:grid-cols-2">
         <div className="space-y-3">
-          <h2 className="text-lg font-bold">Mes informations</h2>
+          <h2 className="font-heading text-2xl font-bold uppercase">Mes informations</h2>
           <ActionForm action={updateProfile}>
             <Field
               label="Prénom"
@@ -53,7 +55,7 @@ export default async function AccountPage({
 
         <div className="space-y-8">
           <div className="space-y-3">
-            <h2 className="text-lg font-bold">Mot de passe</h2>
+            <h2 className="font-heading text-2xl font-bold uppercase">Mot de passe</h2>
             <ActionForm action={changePassword}>
               <Field
                 label="Mot de passe actuel"
@@ -75,7 +77,7 @@ export default async function AccountPage({
           </div>
 
           <div className="space-y-3">
-            <h2 className="text-lg font-bold">Adresse e-mail</h2>
+            <h2 className="font-heading text-2xl font-bold uppercase">Adresse e-mail</h2>
             <p className="text-sm">
               Actuelle : <strong>{customer.emailAddress}</strong>
             </p>

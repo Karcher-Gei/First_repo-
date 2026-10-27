@@ -18,7 +18,9 @@ export default async function SearchPage({ searchParams }: Props) {
   if (!term) {
     return (
       <section className="space-y-4">
-        <h1 className="text-3xl font-black uppercase">Recherche</h1>
+        <h1 className="font-heading text-4xl font-extrabold uppercase leading-none md:text-5xl">
+          Recherche
+        </h1>
         <p>Saisissez un nom de produit ou une référence dans la barre de recherche.</p>
       </section>
     );
@@ -32,7 +34,9 @@ export default async function SearchPage({ searchParams }: Props) {
   return (
     <section className="space-y-6">
       <header className="space-y-1">
-        <h1 className="text-3xl font-black uppercase">Recherche : « {term} »</h1>
+        <h1 className="font-heading text-4xl font-extrabold uppercase leading-none md:text-5xl">
+          Recherche : « {term} »
+        </h1>
         <p className="text-sm text-ink-muted">
           {results.totalItems} résultat{results.totalItems > 1 ? 's' : ''}
         </p>
