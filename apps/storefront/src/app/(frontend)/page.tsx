@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 
 import { RenderBlocks } from '@/components/blocks/RenderBlocks';
+import { DefaultHomepage } from '@/components/DefaultHomepage';
 import { getCms } from '@/lib/cms';
+import { getCategoryMenu } from '@/lib/navigation';
 
 async function loadHomepage() {
   const cms = await getCms();
@@ -19,5 +21,9 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function HomePage() {
   const home = await loadHomepage();
-  return <RenderBlocks blocks={home.layout ?? []} />;
+  const blocks = home.layout ?? [];
+  if (blocks.length === 0) {
+    return <DefaultHomepage categories={await getCategoryMenu()} />;
+  }
+  return <RenderBlocks blocks={blocks} />;
 }

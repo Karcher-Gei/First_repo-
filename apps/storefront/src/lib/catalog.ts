@@ -1,7 +1,13 @@
 import 'server-only';
 
 import { SORTS, type CategoryParams } from './category-params';
-import { CATEGORY_FACETS, CATEGORY_PAGE, PRODUCTS_BY_IDS, type ProductSummary } from './queries';
+import {
+  CATEGORY_FACETS,
+  CATEGORY_PAGE,
+  PRODUCT_SEARCH,
+  PRODUCTS_BY_IDS,
+  type ProductSummary,
+} from './queries';
 import { shopQuery } from './vendure';
 
 export const PAGE_SIZE = 48;
@@ -59,25 +65,57 @@ export async function loadCategoryListing(
     },
   });
 
-  const ids = search.items.map((item) => item.productId);
-  const { products } = ids.length
-    ? await shopQuery(PRODUCTS_BY_IDS, { ids, take: ids.length })
-    : { products: { items: [] } };
-  const byId = new Map(products.items.map((product) => [product.id, product]));
-
   return {
-    facets: [...facets.values()],
+    // A facet with one value shared by every product (Type: Aspirateur in Aspirateurs) cannot narrow the list.
+    facets: [...facets.values()].filter(
+      (group) => group.values.length > 1 || group.values[0]?.count !== all.totalItems,
+    ),
     totalItems: search.totalItems,
     pageCount: Math.max(1, Math.ceil(search.totalItems / PAGE_SIZE)),
-    products: search.items.flatMap((item) => {
-      const product = byId.get(item.productId);
-      if (!product) {
-        return [];
-      }
-      const price = item.priceWithTax;
-      return 'value' in price
-        ? [{ product, priceWithTax: price.value, from: false }]
-        : [{ product, priceWithTax: price.min, from: price.min !== price.max }];
-    }),
+    products: await withSummaries(search.items),
   };
+}
+
+type PriceWithTax = { value: number } | { min: number; max: number };
+
+/** Adds the product summaries (URL fields, image) to search results, keeping their order. */
+async function withSummaries(
+  items: { productId: string; priceWithTax: PriceWithTax }[],
+): Promise<CategoryProduct[]> {
+  const ids = items.map((item) => item.productId);
+  if (ids.length === 0) {
+    return [];
+  }
+  const { products } = await shopQuery(PRODUCTS_BY_IDS, { ids, take: ids.length });
+  const byId = new Map(products.items.map((product) => [product.id, product]));
+  return items.flatMap((item) => {
+    const product = byId.get(item.productId);
+    if (!product) {
+      return [];
+    }
+    const price = item.priceWithTax;
+    return 'value' in price
+      ? [{ product, priceWithTax: price.value, from: false }]
+      : [{ product, priceWithTax: price.min, from: price.min !== price.max }];
+  });
+}
+
+/** Full-text search over the catalog: product names, descriptions and references. */
+export async function searchProducts(term: string, page: number) {
+  const { search } = await shopQuery(PRODUCT_SEARCH, {
+    term,
+    skip: (page - 1) * PAGE_SIZE,
+    take: PAGE_SIZE,
+  });
+  return {
+    totalItems: search.totalItems,
+    pageCount: Math.max(1, Math.ceil(search.totalItems / PAGE_SIZE)),
+    products: await withSummaries(search.items),
+  };
+}
+
+/** A selection from the whole catalog, for the default homepage. */
+export async function featuredProducts(take: number): Promise<CategoryProduct[]> {
+  const { search } = await shopQuery(CATEGORY_PAGE, { input: { groupByProduct: true, take } });
+  return withSummaries(search.items);
 }

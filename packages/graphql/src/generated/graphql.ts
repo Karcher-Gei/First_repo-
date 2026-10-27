@@ -468,21 +468,23 @@ export type ProductByLegacyIdQueryVariables = Exact<{
 }>;
 
 
-export type ProductByLegacyIdQuery = { products: { items: Array<{ description: string, id: string, name: string, slug: string, assets: Array<{ preview: string }>, collections: Array<{ name: string, slug: string, customFields: { legacyId: number | null } | null }>, variants: Array<{ id: string, sku: string, priceWithTax: number, stockLevel: string }>, featuredAsset: { preview: string } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null }> } };
+export type ProductByLegacyIdQuery = { products: { items: Array<{ description: string, id: string, name: string, slug: string, assets: Array<{ preview: string }>, facetValues: Array<{ id: string, name: string, facet: { id: string, name: string } }>, collections: Array<{ id: string, name: string, slug: string, breadcrumbs: Array<{ id: string }>, customFields: { legacyId: number | null } | null, parent: { name: string, slug: string, customFields: { legacyId: number | null } | null } | null }>, variants: Array<{ id: string, sku: string, priceWithTax: number, stockLevel: string }>, featuredAsset: { preview: string } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null }> } };
+
+export type CategoryLinkFragment = { id: string, name: string, slug: string, customFields: { legacyId: number | null } | null };
 
 export type CollectionByLegacyIdQueryVariables = Exact<{
   legacyId: number;
 }>;
 
 
-export type CollectionByLegacyIdQuery = { collections: { items: Array<{ id: string, name: string, slug: string, description: string, customFields: { legacyId: number | null } | null }> } };
+export type CollectionByLegacyIdQuery = { collections: { items: Array<{ id: string, name: string, slug: string, description: string, customFields: { legacyId: number | null } | null, parent: { id: string, name: string, slug: string, parent: { id: string, name: string, slug: string, customFields: { legacyId: number | null } | null } | null, customFields: { legacyId: number | null } | null } | null, children: Array<{ position: number, id: string, name: string, slug: string, customFields: { legacyId: number | null } | null }> | null }> } };
 
 export type CategoryFacetsQueryVariables = Exact<{
   collectionId: string | number;
 }>;
 
 
-export type CategoryFacetsQuery = { search: { facetValues: Array<{ count: number, facetValue: { id: string, name: string, facet: { id: string, name: string } } }> } };
+export type CategoryFacetsQuery = { search: { totalItems: number, facetValues: Array<{ count: number, facetValue: { id: string, name: string, facet: { id: string, name: string } } }> } };
 
 export type CategoryPageQueryVariables = Exact<{
   input: SearchInput;
@@ -546,6 +548,23 @@ export type SitemapCollectionsQueryVariables = Exact<{
 
 
 export type SitemapCollectionsQuery = { collections: { items: Array<{ slug: string, updatedAt: string, customFields: { legacyId: number | null } | null }> } };
+
+export type CategoryTreeQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type CategoryTreeQuery = { collections: { items: Array<{ id: string, name: string, slug: string, featuredAsset: { preview: string } | null, customFields: { legacyId: number | null } | null, children: Array<{ id: string, name: string, slug: string, position: number, customFields: { legacyId: number | null } | null }> | null }> } };
+
+export type ProductSearchQueryVariables = Exact<{
+  term: string;
+  skip: number;
+  take: number;
+}>;
+
+
+export type ProductSearchQuery = { search: { totalItems: number, items: Array<{ productId: string, priceWithTax:
+        | { min: number, max: number }
+        | { value: number }
+       }> } };
 
 export type QuoteProductQueryVariables = Exact<{
   id: string | number;
@@ -740,6 +759,16 @@ fragment VariantSummary on ProductVariant {
     ...ProductSummary
   }
 }`, {"fragmentName":"CollectionWithProducts"}) as unknown as TypedDocumentString<CollectionWithProductsFragment, unknown>;
+export const CategoryLinkFragmentDoc = new TypedDocumentString(`
+    fragment CategoryLink on Collection {
+  id
+  name
+  slug
+  customFields {
+    legacyId
+  }
+}
+    `, {"fragmentName":"CategoryLink"}) as unknown as TypedDocumentString<CategoryLinkFragment, unknown>;
 export const ActiveCustomerDocument = new TypedDocumentString(`
     query ActiveCustomer {
   activeCustomer {
@@ -1292,11 +1321,30 @@ export const ProductByLegacyIdDocument = new TypedDocumentString(`
       assets {
         preview
       }
+      facetValues {
+        id
+        name
+        facet {
+          id
+          name
+        }
+      }
       collections {
+        id
         name
         slug
+        breadcrumbs {
+          id
+        }
         customFields {
           legacyId
+        }
+        parent {
+          name
+          slug
+          customFields {
+            legacyId
+          }
         }
       }
       variants {
@@ -1332,13 +1380,31 @@ export const CollectionByLegacyIdDocument = new TypedDocumentString(`
       customFields {
         legacyId
       }
+      parent {
+        ...CategoryLink
+        parent {
+          ...CategoryLink
+        }
+      }
+      children {
+        ...CategoryLink
+        position
+      }
     }
   }
 }
-    `) as unknown as TypedDocumentString<CollectionByLegacyIdQuery, CollectionByLegacyIdQueryVariables>;
+    fragment CategoryLink on Collection {
+  id
+  name
+  slug
+  customFields {
+    legacyId
+  }
+}`) as unknown as TypedDocumentString<CollectionByLegacyIdQuery, CollectionByLegacyIdQueryVariables>;
 export const CategoryFacetsDocument = new TypedDocumentString(`
     query CategoryFacets($collectionId: ID!) {
   search(input: {collectionId: $collectionId, groupByProduct: true, take: 0}) {
+    totalItems
     facetValues {
       count
       facetValue {
@@ -1483,6 +1549,51 @@ export const SitemapCollectionsDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<SitemapCollectionsQuery, SitemapCollectionsQueryVariables>;
+export const CategoryTreeDocument = new TypedDocumentString(`
+    query CategoryTree {
+  collections(options: {topLevelOnly: true, take: 50, sort: {position: ASC}}) {
+    items {
+      id
+      name
+      slug
+      featuredAsset {
+        preview
+      }
+      customFields {
+        legacyId
+      }
+      children {
+        id
+        name
+        slug
+        position
+        customFields {
+          legacyId
+        }
+      }
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<CategoryTreeQuery, CategoryTreeQueryVariables>;
+export const ProductSearchDocument = new TypedDocumentString(`
+    query ProductSearch($term: String!, $skip: Int!, $take: Int!) {
+  search(input: {term: $term, groupByProduct: true, skip: $skip, take: $take}) {
+    totalItems
+    items {
+      productId
+      priceWithTax {
+        ... on SinglePrice {
+          value
+        }
+        ... on PriceRange {
+          min
+          max
+        }
+      }
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<ProductSearchQuery, ProductSearchQueryVariables>;
 export const QuoteProductDocument = new TypedDocumentString(`
     query QuoteProduct($id: ID!) {
   product(id: $id) {

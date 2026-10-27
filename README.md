@@ -85,6 +85,11 @@ does today (Next.js sends 308 where PrestaShop sends 301; Google treats them the
 | `/compte/verification`, `/compte/mot-de-passe`, `/compte/verification-email` | Links of Vendure's e-mails; each asks for a click, so mail scanners cannot use the token |
 | `/devis`                                                                     | Quote request for one product (`?produit=&variante=`) or the cart (`?panier=1`)          |
 | `/garantie`                                                                  | Warranty registration                                                                    |
+| `/recherche`                                                                 | Product search (`?s=`), not indexed                                                      |
+
+The header menu, footer product links and homepage category tiles come from Vendure's collection tree (collections
+need a `legacyId` to appear); the CMS Navigation links are added after them. Until staff fill the CMS, the homepage and
+footer fall back to defaults built from the catalog. Search lives at `/recherche?s=`, PrestaShop's search URL.
 
 The shopper's Vendure session token lives in the httpOnly `kgei_session` cookie (`src/lib/session.ts`); every cart,
 checkout and account change is a Server Action. Category pages filter with `?q=` (facet value ids), sort with

@@ -62,11 +62,30 @@ export const PRODUCT_BY_LEGACY_ID = graphql(`
         assets {
           preview
         }
+        facetValues {
+          id
+          name
+          facet {
+            id
+            name
+          }
+        }
         collections {
+          id
           name
           slug
+          breadcrumbs {
+            id
+          }
           customFields {
             legacyId
+          }
+          parent {
+            name
+            slug
+            customFields {
+              legacyId
+            }
           }
         }
         variants {
@@ -76,6 +95,17 @@ export const PRODUCT_BY_LEGACY_ID = graphql(`
           stockLevel
         }
       }
+    }
+  }
+`);
+
+graphql(`
+  fragment CategoryLink on Collection {
+    id
+    name
+    slug
+    customFields {
+      legacyId
     }
   }
 `);
@@ -91,6 +121,16 @@ export const COLLECTION_BY_LEGACY_ID = graphql(`
         customFields {
           legacyId
         }
+        parent {
+          ...CategoryLink
+          parent {
+            ...CategoryLink
+          }
+        }
+        children {
+          ...CategoryLink
+          position
+        }
       }
     }
   }
@@ -100,6 +140,7 @@ export const COLLECTION_BY_LEGACY_ID = graphql(`
 export const CATEGORY_FACETS = graphql(`
   query CategoryFacets($collectionId: ID!) {
     search(input: { collectionId: $collectionId, groupByProduct: true, take: 0 }) {
+      totalItems
       facetValues {
         count
         facetValue {
@@ -203,6 +244,54 @@ export const SITEMAP_COLLECTIONS = graphql(`
         updatedAt
         customFields {
           legacyId
+        }
+      }
+    }
+  }
+`);
+
+/** Top-level categories and their children, for the menu, footer and homepage tiles. */
+export const CATEGORY_TREE = graphql(`
+  query CategoryTree {
+    collections(options: { topLevelOnly: true, take: 50, sort: { position: ASC } }) {
+      items {
+        id
+        name
+        slug
+        featuredAsset {
+          preview
+        }
+        customFields {
+          legacyId
+        }
+        children {
+          id
+          name
+          slug
+          position
+          customFields {
+            legacyId
+          }
+        }
+      }
+    }
+  }
+`);
+
+export const PRODUCT_SEARCH = graphql(`
+  query ProductSearch($term: String!, $skip: Int!, $take: Int!) {
+    search(input: { term: $term, groupByProduct: true, skip: $skip, take: $take }) {
+      totalItems
+      items {
+        productId
+        priceWithTax {
+          ... on SinglePrice {
+            value
+          }
+          ... on PriceRange {
+            min
+            max
+          }
         }
       }
     }

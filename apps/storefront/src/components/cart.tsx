@@ -7,6 +7,7 @@ import { useActionState, useEffect, useState } from 'react';
 import { addToCart, updateCartLine } from '@/app/(frontend)/panier/actions';
 
 import { SubmitButton } from './forms';
+import { CartIcon } from './icons';
 
 /** Fired after the cart changes, so the header count can update without a reload. */
 const CART_CHANGED = 'kgei:cart-changed';
@@ -117,13 +118,15 @@ export function CartLink() {
     return () => window.removeEventListener(CART_CHANGED, load);
   }, []);
   return (
-    <Link href="/panier" className="inline-flex items-center gap-2 font-semibold">
-      Panier
+    <Link
+      href="/panier"
+      className="relative inline-flex items-center gap-2 font-semibold"
+      aria-label={count ? `Panier, ${count} article${count > 1 ? 's' : ''}` : 'Panier'}
+    >
+      <CartIcon />
+      <span className="hidden lg:inline">Panier</span>
       {count ? (
-        <span
-          className="rounded-full bg-ink px-2 py-0.5 text-xs text-white"
-          aria-label={`${count} articles`}
-        >
+        <span className="absolute -right-2 -top-2 min-w-5 rounded-full bg-ink px-1.5 text-center text-xs leading-5 text-white lg:static">
           {count}
         </span>
       ) : null}

@@ -17,8 +17,16 @@ export default function FrontendLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="fr">
       <body>
+        <a
+          href="#contenu"
+          className="sr-only z-50 bg-ink px-4 py-2 text-white focus:not-sr-only focus:fixed focus:left-2 focus:top-2"
+        >
+          Aller au contenu
+        </a>
         <Header />
-        <main className="mx-auto min-h-[60vh] max-w-7xl px-4 py-8">{children}</main>
+        <main id="contenu" className="mx-auto min-h-[60vh] max-w-7xl px-4 py-6 md:py-8">
+          {children}
+        </main>
         <Footer />
       </body>
     </html>
