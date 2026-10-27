@@ -1,3 +1,6 @@
 # Written by graphql-codegen (pnpm codegen)
 packages/graphql/src/generated
 pnpm-lock.yaml
+
+# Written by payload migrate:create
+apps/storefront/src/migrations

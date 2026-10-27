@@ -13,6 +13,7 @@ import { Users } from './cms/collections/Users';
 import { FixedPages } from './cms/globals/FixedPages';
 import { Homepage } from './cms/globals/Homepage';
 import { Navigation } from './cms/globals/Navigation';
+import { migrations } from './migrations';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -43,6 +44,11 @@ export default buildConfig({
   },
   db: postgresAdapter({
     pool: { connectionString: process.env.DATABASE_URL || '' },
+    // Schema changes go through migrations everywhere, as for Vendure: after editing a collection
+    // or global, `pnpm migrate:create <name>`, then `pnpm migrate`. Production runs them on start.
+    push: false,
+    migrationDir: path.resolve(dirname, 'migrations'),
+    prodMigrations: migrations,
   }),
   sharp,
 });

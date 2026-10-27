@@ -34,6 +34,7 @@ cp apps/server/.env.example apps/server/.env
 cp apps/storefront/.env.example apps/storefront/.env
 pnpm db:up
 pnpm --filter @karcher/server migrate
+pnpm --filter @karcher/storefront migrate
 pnpm dev
 # once, in a second terminal while the server runs: TND, French, Tunisia zone, TVA 19%, shipping, payment methods
 pnpm --filter @karcher/server setup:channel
@@ -43,9 +44,14 @@ pnpm --filter @karcher/server setup:channel
 - Vendure dashboard: http://localhost:3000/dashboard (superadmin credentials from `apps/server/.env`)
 - Dev mailbox (emails Vendure would send): http://localhost:3000/mailbox
 
-The database schema comes from migrations in `apps/server/src/migrations`. After changing an entity or a custom
-field, run `pnpm --filter @karcher/server migration:generate <name>`, review the file, then `migrate`.
-`setup:channel` sets the shipping rate to 0; set the real delivery prices in the dashboard.
+Both database schemas come from migrations, never from automatic sync:
+
+- Vendure (`apps/server/src/migrations`): after changing an entity or a custom field, run
+  `pnpm --filter @karcher/server migration:generate <name>`, review the file, then `migrate`.
+- Payload (`apps/storefront/src/migrations`): after changing a collection or global, run
+  `pnpm --filter @karcher/storefront migrate:create <name>`, review the file, then `migrate`. In production
+  the storefront applies pending Payload migrations when it starts.
+  `setup:channel` sets the shipping rate to 0; set the real delivery prices in the dashboard.
 
 ## Everyday commands
 
