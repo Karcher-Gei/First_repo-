@@ -1,11 +1,9 @@
 import { breadcrumbJsonLd, productJsonLd } from '@karcher/seo';
-import { cn, Price } from '@karcher/ui';
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { permanentRedirect } from 'next/navigation';
 
 import { Breadcrumbs, type Crumb } from '@/components/Breadcrumbs';
-import { AddToCartForm } from '@/components/cart';
+import { BuyBox } from '@/components/BuyBox';
 import { ProductCard } from '@/components/ProductCard';
 import { ProductGallery } from '@/components/ProductGallery';
 import { ServiceHighlights } from '@/components/ServiceHighlights';
@@ -52,12 +50,6 @@ function mainCategory(product: Product) {
   );
 }
 
-const STOCK = {
-  IN_STOCK: { label: 'En stock', className: 'text-success' },
-  LOW_STOCK: { label: 'Stock limité', className: 'text-warning' },
-  OUT_OF_STOCK: { label: 'Rupture de stock', className: 'text-danger' },
-} as Record<string, { label: string; className: string }>;
-
 /** Facet values grouped by facet, e.g. Type: Aspirateur. */
 function specifications(product: Product) {
   const groups = new Map<string, { name: string; values: string[] }>();
@@ -85,9 +77,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!product) {
     return {};
   }
+  // Meta tags migrated from PrestaShop win; PrestaShop titles already end with the shop name.
   return {
-    title: product.name,
-    description: plainText(product.description).slice(0, 155),
+    title: product.seo?.metaTitle ? { absolute: product.seo.metaTitle } : product.name,
+    description: product.seo?.metaDescription ?? plainText(product.description).slice(0, 155),
     alternates: { canonical: productHref(product) ?? undefined },
   };
 }
@@ -103,7 +96,9 @@ export default async function ProductPage({ params, searchParams }: Props) {
     permanentRedirect(href);
   }
 
-  const variant = product.variants[0];
+  // Combinations: the lowest price and any stock stand for the product in search results.
+  const variant = [...product.variants].sort((a, b) => a.priceWithTax - b.priceWithTax)[0];
+  const inStock = product.variants.some((v) => v.stockLevel !== 'OUT_OF_STOCK');
   const category = mainCategory(product);
   const crumbs: Crumb[] = [
     { name: 'Accueil', href: '/' },
@@ -120,7 +115,6 @@ export default async function ProductPage({ params, searchParams }: Props) {
         ? [product.featuredAsset]
         : [];
   const specs = specifications(product);
-  const stock = variant ? STOCK[variant.stockLevel] : undefined;
   const related = await relatedProducts(product, category?.slug);
 
   const jsonLd = [
@@ -133,7 +127,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
       gtin13: product.customFields?.ean13,
       price: (variant?.priceWithTax ?? 0) / 1000,
       currency: 'TND',
-      inStock: variant?.stockLevel !== 'OUT_OF_STOCK',
+      inStock,
     }),
     breadcrumbJsonLd(
       crumbs.map((crumb) => ({ name: crumb.name, url: absoluteUrl(crumb.href ?? href ?? '/') })),
@@ -154,36 +148,8 @@ export default async function ProductPage({ params, searchParams }: Props) {
           <div className="space-y-6">
             <header className="space-y-2">
               <h1 className="text-2xl font-black md:text-3xl">{product.name}</h1>
-              {variant ? <p className="text-sm text-ink-muted">Réf. {variant.sku}</p> : null}
             </header>
-            {variant ? (
-              <div className="space-y-4 rounded-card border border-line p-5">
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <span className="text-2xl">
-                    <Price value={variant.priceWithTax} />
-                  </span>
-                  {stock ? (
-                    <span className={cn('text-sm font-semibold', stock.className)}>
-                      {stock.label}
-                    </span>
-                  ) : null}
-                </div>
-                <p className="text-xs text-ink-muted">Prix TTC</p>
-                <AddToCartForm
-                  variantId={variant.id}
-                  disabled={variant.stockLevel === 'OUT_OF_STOCK'}
-                />
-                <p className="border-t border-line pt-3 text-sm">
-                  Professionnel ou grande quantité ?{' '}
-                  <Link
-                    href={`/devis?produit=${product.id}&variante=${variant.id}`}
-                    className="font-semibold underline"
-                  >
-                    Demander un devis
-                  </Link>
-                </p>
-              </div>
-            ) : null}
+            <BuyBox productId={product.id} variants={product.variants} />
             <ServiceHighlights compact />
           </div>
         </div>

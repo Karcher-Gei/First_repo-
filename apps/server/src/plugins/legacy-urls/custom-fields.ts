@@ -10,13 +10,49 @@ declare module '@vendure/core/dist/entity/custom-entity-fields' {
         ean13: string | null;
         urlCategory: string | null;
     }
+    interface CustomProductFieldsTranslation {
+        metaTitle: string | null;
+        metaDescription: string | null;
+    }
     interface CustomCollectionFields {
         legacyId: number | null;
+    }
+    interface CustomCollectionFieldsTranslation {
+        metaTitle: string | null;
+        metaDescription: string | null;
     }
     interface CustomAssetFields {
         legacyImageId: number | null;
     }
 }
+
+/** Meta title and description, migrated word for word from PrestaShop; the page falls back to the name and description. */
+const seoCustomFields: CustomFieldConfig[] = [
+    {
+        name: 'metaTitle',
+        type: 'localeString',
+        nullable: true,
+        public: true,
+        label: [
+            { languageCode: LanguageCode.fr, value: 'Balise titre' },
+            { languageCode: LanguageCode.en, value: 'Meta title' },
+        ],
+        description: [{ languageCode: LanguageCode.en, value: 'Max ~60 characters.' }],
+        ui: { tab: 'SEO' },
+    },
+    {
+        name: 'metaDescription',
+        type: 'localeText',
+        nullable: true,
+        public: true,
+        label: [
+            { languageCode: LanguageCode.fr, value: 'Méta description' },
+            { languageCode: LanguageCode.en, value: 'Meta description' },
+        ],
+        description: [{ languageCode: LanguageCode.en, value: 'Max ~155 characters.' }],
+        ui: { tab: 'SEO' },
+    },
+];
 
 export const productCustomFields: CustomFieldConfig[] = [
     {
@@ -54,6 +90,7 @@ export const productCustomFields: CustomFieldConfig[] = [
         ],
         ui: { tab: 'SEO' },
     },
+    ...seoCustomFields,
 ];
 
 export const collectionCustomFields: CustomFieldConfig[] = [
@@ -68,6 +105,7 @@ export const collectionCustomFields: CustomFieldConfig[] = [
         ],
         ui: { tab: 'SEO' },
     },
+    ...seoCustomFields,
 ];
 
 export const assetCustomFields: CustomFieldConfig[] = [

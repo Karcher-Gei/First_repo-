@@ -16,7 +16,7 @@ packages/
   ui/                Karcher design tokens (Tailwind v4) and shared components
   graphql/           typed Shop API client; `pnpm codegen` generates types from the server
   config/            shared tsconfig
-tools/migration/     reads a copy of the PrestaShop database (URL inventory today, import next)
+tools/migration/     reads a copy of the PrestaShop database: URL inventory, import, URL check
 ```
 
 ## Requirements
@@ -98,6 +98,42 @@ checkout and account change is a Server Action. Category pages filter with `?q=`
 In dev the checkout also offers Vendure's test payment method, which settles at once. To try the Konnect flow
 without Konnect, point `KONNECT_API_URL` in `apps/server/.env` at a mock of its API.
 
+## Migrating from PrestaShop
+
+`tools/migration` reads a **copy** of the PrestaShop database (never the live one) and imports it. Every step can run
+again: products, categories and images are matched on their PrestaShop id, customers on their e-mail.
+
+```bash
+mysql prestashop_copy < dump.sql                   # the phpMyAdmin export, into a local MySQL/MariaDB
+cp tools/migration/.env.example tools/migration/.env # database, image source, Vendure credentials
+pnpm --filter @karcher/migration inventory         # every PrestaShop URL -> out/url-inventory.csv
+pnpm --filter @karcher/migration import:shop       # catalog, customers, CMS export (see out/import-report.txt)
+pnpm --filter @karcher/storefront import:cms       # CMS pages into Payload
+pnpm --filter @karcher/migration check:urls        # every URL of the inventory against the storefront
+```
+
+The Vendure server must be running, on a database prepared with `migrate` and `setup:channel`.
+
+| PrestaShop                          | Vendure / Payload                                                                   |
+| ----------------------------------- | ----------------------------------------------------------------------------------- |
+| Products, descriptions, meta tags   | Products with `legacyId`, `ean13` (valid EAN-8/13 only), `urlCategory`, SEO fields  |
+| Prices excluding VAT, tax rules     | Prices including VAT in millimes, one tax category per Tunisian rate (`TVA 7%`...)  |
+| Combinations (`Version`, ...)       | Option groups and variants, each with its SKU, price and stock                      |
+| Features                            | Facets: category filters and product specifications                                 |
+| Images (`img/p`)                    | Assets with `legacyImageId`, cover first; from a folder copy or the live site       |
+| Categories (active, level 2+)       | Collections with the same tree, listing the products assigned in PrestaShop         |
+| Customers (registered, not deleted) | Customers with their PrestaShop password; addresses in Tunisia with the governorate |
+| CMS pages (active)                  | Payload pages with `legacyId`, HTML converted to rich text                          |
+
+Passwords: PrestaShop 1.7+ bcrypt hashes (`$2y$`) are stored as `$2b$`, so customers sign in as before. PrestaShop 1.6
+MD5 hashes cannot be converted; those customers, and accounts inactive in PrestaShop, are listed in
+`out/password-reset.csv` and sign in after "Mot de passe oublié". Not migrated: order history, specific prices
+(promotions), manufacturers, carriers, customer groups and newsletter consent.
+
+To try it without the real shop: `mysql prestashop < tools/migration/test/fixture.sql` (a small PrestaShop database
+with combinations, two VAT rates, inactive entries and both kinds of password hashes) and
+`PS_IMAGE_DIR=tools/migration/test/img/p`.
+
 ## Conventions
 
 - TypeScript strict everywhere.
@@ -110,9 +146,9 @@ without Konnect, point `KONNECT_API_URL` in `apps/server/.env` at a mock of its 
 
 ## Not done yet
 
-Still to build, per the migration plan: e-mail templates in French, the PrestaShop -> Vendure import script, and
-production deployment. Before going live:
+Still to do, per the migration plan: e-mail templates in French and production deployment. Before going live:
 
+- Run the import on the real database dump and review `out/import-report.txt`; `check:urls` must pass.
 - Check `apps/server/src/plugins/konnect-payment/types.ts` against Konnect's API docs; the flow is tested only
   against a local mock of the same shapes.
 - Set the real delivery prices (the `standard` shipping method is free until then).

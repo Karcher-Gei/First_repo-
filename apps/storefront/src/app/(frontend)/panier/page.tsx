@@ -55,10 +55,10 @@ export default async function CartPage() {
                 <div className="space-y-1">
                   {href ? (
                     <Link href={href} className="font-semibold hover:underline">
-                      {variant.product.name}
+                      {variant.name}
                     </Link>
                   ) : (
-                    <span className="font-semibold">{variant.product.name}</span>
+                    <span className="font-semibold">{variant.name}</span>
                   )}
                   <p className="text-sm text-ink-muted">Réf. {variant.sku}</p>
                   <p className="text-sm">

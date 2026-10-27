@@ -55,8 +55,16 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   // Each page of the plain listing is indexable on its own URL; filtered or sorted variants are not.
   const filtered = facetValueIds.length > 0 || order !== null;
   const pageQuery = filtered ? '' : categoryQuery({ page, facetValueIds: [], order: null });
+  // Meta tags migrated from PrestaShop win; PrestaShop titles already end with the shop name.
+  const metaTitle = collection.customFields?.metaTitle;
   return {
-    title: page > 1 ? `${collection.name} (page ${page})` : collection.name,
+    title:
+      page > 1
+        ? `${collection.name} (page ${page})`
+        : metaTitle
+          ? { absolute: metaTitle }
+          : collection.name,
+    description: collection.customFields?.metaDescription ?? undefined,
     alternates: { canonical: canonical ? canonical + pageQuery : undefined },
     robots: filtered ? { index: false, follow: true } : undefined,
   };

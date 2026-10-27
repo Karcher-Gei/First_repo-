@@ -59,6 +59,10 @@ export const PRODUCT_BY_LEGACY_ID = graphql(`
       items {
         ...ProductSummary
         description
+        seo: customFields {
+          metaTitle
+          metaDescription
+        }
         assets {
           preview
         }
@@ -90,9 +94,13 @@ export const PRODUCT_BY_LEGACY_ID = graphql(`
         }
         variants {
           id
+          name
           sku
           priceWithTax
           stockLevel
+          options {
+            name
+          }
         }
       }
     }
@@ -120,6 +128,8 @@ export const COLLECTION_BY_LEGACY_ID = graphql(`
         description
         customFields {
           legacyId
+          metaTitle
+          metaDescription
         }
         parent {
           ...CategoryLink
