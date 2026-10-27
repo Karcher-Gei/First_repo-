@@ -1,12 +1,17 @@
 import { categoryPath, productPath } from '@karcher/seo';
 
-import type { ProductSummary } from './queries';
-
 /**
  * Canonical URL of a migrated product. Products created after the migration have no
  * legacyId yet: give them one in the Vendure dashboard (SEO tab) before publishing.
  */
-export function productHref(product: Pick<ProductSummary, 'slug' | 'customFields'>): string | null {
+export function productHref(product: {
+  slug: string;
+  customFields: {
+    legacyId: number | null;
+    ean13: string | null;
+    urlCategory: string | null;
+  } | null;
+}): string | null {
   if (product.customFields?.legacyId == null) {
     return null;
   }

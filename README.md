@@ -189,6 +189,19 @@ pnpm test:e2e
 The Konnect mock starts with the tests; the setup gives the product they buy enough stock. Run them again
 after the real import only on a copy: they place orders and create customers.
 
+## Professional range: price on quote only
+
+Products with "Prix sur devis" ticked (custom field `quoteOnly`) never publish their price or stock: the
+import ticks it for the PrestaShop "Professionnel" category tree (or the categories in
+`PS_QUOTE_ONLY_CATEGORY_IDS`), and staff tick it in the dashboard for new products. The rule is enforced by
+Vendure (`apps/server/src/plugins/quotes/quote-only.ts`), not only by the pages, since the Shop API is public:
+
+- the Shop API and the search index give a price of 0 and a stock level of `ON_REQUEST`; only the dashboard
+  sees the real price;
+- the variants stop tracking inventory, so the search's in-stock filter reveals nothing;
+- the product cannot be added to a cart; the storefront shows "Prix sur devis" and the quote request, with no
+  JSON-LD offer, no sale, no stock filter or price sort on listings made only of such products.
+
 ## E-mails
 
 Templates in French with the Kärcher look are in `apps/server/email-templates` (MJML and Handlebars;

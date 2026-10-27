@@ -1,6 +1,14 @@
 import { PluginCommonModule, VendurePlugin } from '@vendure/core';
 import gql from 'graphql-tag';
 
+import {
+    QuoteOnlyOrderInterceptor,
+    QuoteOnlyPriceCalculationStrategy,
+    QuoteOnlySearchResultResolver,
+    QuoteOnlyService,
+    QuoteOnlyStockDisplayStrategy,
+    quoteOnlyCustomFields,
+} from './quote-only';
 import { QuoteRequest } from './quote-request.entity';
 import { QuoteAdminResolver, QuoteShopResolver } from './quote.resolvers';
 import { QuoteService } from './quote.service';
@@ -68,10 +76,21 @@ const adminSchema = gql`
 @VendurePlugin({
     imports: [PluginCommonModule],
     entities: [QuoteRequest],
-    providers: [QuoteService],
-    shopApiExtensions: { schema: shopSchema, resolvers: [QuoteShopResolver] },
+    providers: [QuoteService, QuoteOnlyService],
+    shopApiExtensions: { schema: shopSchema, resolvers: [QuoteShopResolver, QuoteOnlySearchResultResolver] },
     adminApiExtensions: { schema: adminSchema, resolvers: [QuoteAdminResolver] },
     dashboard: './dashboard/index.tsx',
+    // The professional range is sold on quote only (quote-only.ts).
+    configuration: config => {
+        config.customFields.Product.push(...quoteOnlyCustomFields);
+        config.catalogOptions.productVariantPriceCalculationStrategy = new QuoteOnlyPriceCalculationStrategy();
+        config.catalogOptions.stockDisplayStrategy = new QuoteOnlyStockDisplayStrategy();
+        config.orderOptions.orderInterceptors = [
+            ...(config.orderOptions.orderInterceptors ?? []),
+            new QuoteOnlyOrderInterceptor(),
+        ];
+        return config;
+    },
     compatibility: '^3.0.0',
 })
 export class QuotesPlugin {}

@@ -7,12 +7,15 @@ export interface ProductJsonLdInput {
   images: string[];
   sku?: string;
   gtin13?: string | null;
-  /** Price in major units, e.g. 1542 for 1 542,000 TND. */
-  price: number;
-  currency: string;
-  inStock: boolean;
-  /** End of a sale price, e.g. "2026-12-31". */
-  priceValidUntil?: string | null;
+  /** The offer; none for a product sold on quote only, whose price and stock are never published. */
+  offer?: {
+    /** Price in major units, e.g. 1542 for 1 542,000 TND. */
+    price: number;
+    currency: string;
+    inStock: boolean;
+    /** End of a sale price, e.g. "2026-12-31". */
+    priceValidUntil?: string | null;
+  };
 }
 
 export function productJsonLd(p: ProductJsonLdInput): Record<string, unknown> {
@@ -26,15 +29,21 @@ export function productJsonLd(p: ProductJsonLdInput): Record<string, unknown> {
     brand: { '@type': 'Brand', name: 'Kärcher' },
     ...(p.sku ? { sku: p.sku } : {}),
     ...(p.gtin13 ? { gtin13: p.gtin13 } : {}),
-    offers: {
-      '@type': 'Offer',
-      url: p.url,
-      price: p.price.toFixed(3),
-      priceCurrency: p.currency,
-      ...(p.priceValidUntil ? { priceValidUntil: p.priceValidUntil } : {}),
-      availability: p.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-      itemCondition: 'https://schema.org/NewCondition',
-    },
+    ...(p.offer
+      ? {
+          offers: {
+            '@type': 'Offer',
+            url: p.url,
+            price: p.offer.price.toFixed(3),
+            priceCurrency: p.offer.currency,
+            ...(p.offer.priceValidUntil ? { priceValidUntil: p.offer.priceValidUntil } : {}),
+            availability: p.offer.inStock
+              ? 'https://schema.org/InStock'
+              : 'https://schema.org/OutOfStock',
+            itemCondition: 'https://schema.org/NewCondition',
+          },
+        }
+      : {}),
   };
 }
 

@@ -21,7 +21,11 @@ export function ProductCard({
   if (!href) {
     return null;
   }
-  const sale = productSale(product.variants, priceWithTax);
+  // Professional range: sold on quote only, no price on the site.
+  const quoteOnly = product.customFields?.quoteOnly === true;
+  const sale = quoteOnly
+    ? { regularPrice: null, percent: 0 }
+    : productSale(product.variants, priceWithTax);
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-card bg-surface ring-1 ring-line transition-all hover:-translate-y-0.5 hover:shadow-xl hover:ring-ink/20">
       <div className="relative aspect-square bg-stage">
@@ -41,7 +45,7 @@ export function ProductCard({
             Kärcher
           </span>
         )}
-        {priceFrom ? (
+        {priceFrom && !quoteOnly ? (
           <span className="absolute left-3 top-3 rounded-full bg-surface px-2.5 py-0.5 text-xs font-semibold shadow-sm">
             Plusieurs versions
           </span>
@@ -60,10 +64,17 @@ export function ProductCard({
           </Link>
         </h3>
         <div className="flex items-end justify-between gap-2">
-          <p className="text-lg leading-tight">
-            {priceFrom ? <span className="block text-xs text-ink-muted">À partir de</span> : null}
-            <Price value={priceWithTax} previous={sale.regularPrice} />
-          </p>
+          {quoteOnly ? (
+            <p className="leading-tight">
+              <span className="block text-xs text-ink-muted">Gamme professionnelle</span>
+              <span className="font-bold">Prix sur devis</span>
+            </p>
+          ) : (
+            <p className="text-lg leading-tight">
+              {priceFrom ? <span className="block text-xs text-ink-muted">À partir de</span> : null}
+              <Price value={priceWithTax} previous={sale.regularPrice} />
+            </p>
+          )}
           <span
             aria-hidden="true"
             className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand text-lg transition-transform group-hover:translate-x-0.5"

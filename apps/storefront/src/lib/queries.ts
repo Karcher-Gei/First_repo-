@@ -22,6 +22,7 @@ graphql(`
       legacyId
       ean13
       urlCategory
+      quoteOnly
     }
     variants {
       priceWithTax

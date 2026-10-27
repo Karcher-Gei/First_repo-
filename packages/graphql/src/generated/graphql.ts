@@ -157,6 +157,7 @@ export type ProductFilterParameter = {
   metaDescription?: StringOperators | null | undefined;
   metaTitle?: StringOperators | null | undefined;
   name?: StringOperators | null | undefined;
+  quoteOnly?: BooleanOperators | null | undefined;
   slug?: StringOperators | null | undefined;
   unitsSold?: NumberOperators | null | undefined;
   updatedAt?: DateOperators | null | undefined;
@@ -186,6 +187,7 @@ export type ProductSortParameter = {
   metaDescription?: SortOrder | null | undefined;
   metaTitle?: SortOrder | null | undefined;
   name?: SortOrder | null | undefined;
+  quoteOnly?: SortOrder | null | undefined;
   slug?: SortOrder | null | undefined;
   unitsSold?: SortOrder | null | undefined;
   updatedAt?: SortOrder | null | undefined;
@@ -436,12 +438,12 @@ export type DeleteAddressMutationVariables = Exact<{
 
 export type DeleteAddressMutation = { deleteCustomerAddress: { success: boolean } };
 
-export type CartOrderFragment = { id: string, code: string, state: string, active: boolean, totalQuantity: number, subTotalWithTax: number, shippingWithTax: number, totalWithTax: number, customer: { id: string, firstName: string, lastName: string, emailAddress: string, phoneNumber: string | null } | null, shippingAddress: { fullName: string | null, streetLine1: string | null, streetLine2: string | null, city: string | null, province: string | null, postalCode: string | null, phoneNumber: string | null } | null, shippingLines: Array<{ priceWithTax: number, shippingMethod: { id: string, name: string } }>, discounts: Array<{ description: string, amountWithTax: number }>, lines: Array<{ id: string, quantity: number, unitPriceWithTax: number, linePriceWithTax: number, featuredAsset: { preview: string } | null, productVariant: { id: string, name: string, sku: string, product: { id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null, variants: Array<{ priceWithTax: number, customFields: { regularPrice: number | null } | null }> } } }> };
+export type CartOrderFragment = { id: string, code: string, state: string, active: boolean, totalQuantity: number, subTotalWithTax: number, shippingWithTax: number, totalWithTax: number, customer: { id: string, firstName: string, lastName: string, emailAddress: string, phoneNumber: string | null } | null, shippingAddress: { fullName: string | null, streetLine1: string | null, streetLine2: string | null, city: string | null, province: string | null, postalCode: string | null, phoneNumber: string | null } | null, shippingLines: Array<{ priceWithTax: number, shippingMethod: { id: string, name: string } }>, discounts: Array<{ description: string, amountWithTax: number }>, lines: Array<{ id: string, quantity: number, unitPriceWithTax: number, linePriceWithTax: number, featuredAsset: { preview: string } | null, productVariant: { id: string, name: string, sku: string, product: { id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null, quoteOnly: boolean | null } | null, variants: Array<{ priceWithTax: number, customFields: { regularPrice: number | null } | null }> } } }> };
 
 export type ActiveOrderQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ActiveOrderQuery = { activeOrder: { id: string, code: string, state: string, active: boolean, totalQuantity: number, subTotalWithTax: number, shippingWithTax: number, totalWithTax: number, customer: { id: string, firstName: string, lastName: string, emailAddress: string, phoneNumber: string | null } | null, shippingAddress: { fullName: string | null, streetLine1: string | null, streetLine2: string | null, city: string | null, province: string | null, postalCode: string | null, phoneNumber: string | null } | null, shippingLines: Array<{ priceWithTax: number, shippingMethod: { id: string, name: string } }>, discounts: Array<{ description: string, amountWithTax: number }>, lines: Array<{ id: string, quantity: number, unitPriceWithTax: number, linePriceWithTax: number, featuredAsset: { preview: string } | null, productVariant: { id: string, name: string, sku: string, product: { id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null, variants: Array<{ priceWithTax: number, customFields: { regularPrice: number | null } | null }> } } }> } | null };
+export type ActiveOrderQuery = { activeOrder: { id: string, code: string, state: string, active: boolean, totalQuantity: number, subTotalWithTax: number, shippingWithTax: number, totalWithTax: number, customer: { id: string, firstName: string, lastName: string, emailAddress: string, phoneNumber: string | null } | null, shippingAddress: { fullName: string | null, streetLine1: string | null, streetLine2: string | null, city: string | null, province: string | null, postalCode: string | null, phoneNumber: string | null } | null, shippingLines: Array<{ priceWithTax: number, shippingMethod: { id: string, name: string } }>, discounts: Array<{ description: string, amountWithTax: number }>, lines: Array<{ id: string, quantity: number, unitPriceWithTax: number, linePriceWithTax: number, featuredAsset: { preview: string } | null, productVariant: { id: string, name: string, sku: string, product: { id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null, quoteOnly: boolean | null } | null, variants: Array<{ priceWithTax: number, customFields: { regularPrice: number | null } | null }> } } }> } | null };
 
 export type CartCountQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -502,7 +504,7 @@ export type TransitionOrderMutation = { transitionOrderToState:
 export type CheckoutOptionsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type CheckoutOptionsQuery = { activeOrder: { id: string, code: string, state: string, active: boolean, totalQuantity: number, subTotalWithTax: number, shippingWithTax: number, totalWithTax: number, customer: { id: string, firstName: string, lastName: string, emailAddress: string, phoneNumber: string | null } | null, shippingAddress: { fullName: string | null, streetLine1: string | null, streetLine2: string | null, city: string | null, province: string | null, postalCode: string | null, phoneNumber: string | null } | null, shippingLines: Array<{ priceWithTax: number, shippingMethod: { id: string, name: string } }>, discounts: Array<{ description: string, amountWithTax: number }>, lines: Array<{ id: string, quantity: number, unitPriceWithTax: number, linePriceWithTax: number, featuredAsset: { preview: string } | null, productVariant: { id: string, name: string, sku: string, product: { id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null, variants: Array<{ priceWithTax: number, customFields: { regularPrice: number | null } | null }> } } }> } | null, activeCustomer: { id: string, firstName: string, lastName: string, emailAddress: string, phoneNumber: string | null, addresses: Array<{ fullName: string | null, streetLine1: string, streetLine2: string | null, city: string | null, province: string | null, postalCode: string | null, phoneNumber: string | null, defaultShippingAddress: boolean | null }> | null } | null, eligibleShippingMethods: Array<{ id: string, name: string, description: string, priceWithTax: number }>, eligiblePaymentMethods: Array<{ code: string, name: string, description: string, isEligible: boolean }> };
+export type CheckoutOptionsQuery = { activeOrder: { id: string, code: string, state: string, active: boolean, totalQuantity: number, subTotalWithTax: number, shippingWithTax: number, totalWithTax: number, customer: { id: string, firstName: string, lastName: string, emailAddress: string, phoneNumber: string | null } | null, shippingAddress: { fullName: string | null, streetLine1: string | null, streetLine2: string | null, city: string | null, province: string | null, postalCode: string | null, phoneNumber: string | null } | null, shippingLines: Array<{ priceWithTax: number, shippingMethod: { id: string, name: string } }>, discounts: Array<{ description: string, amountWithTax: number }>, lines: Array<{ id: string, quantity: number, unitPriceWithTax: number, linePriceWithTax: number, featuredAsset: { preview: string } | null, productVariant: { id: string, name: string, sku: string, product: { id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null, quoteOnly: boolean | null } | null, variants: Array<{ priceWithTax: number, customFields: { regularPrice: number | null } | null }> } } }> } | null, activeCustomer: { id: string, firstName: string, lastName: string, emailAddress: string, phoneNumber: string | null, addresses: Array<{ fullName: string | null, streetLine1: string, streetLine2: string | null, city: string | null, province: string | null, postalCode: string | null, phoneNumber: string | null, defaultShippingAddress: boolean | null }> | null } | null, eligibleShippingMethods: Array<{ id: string, name: string, description: string, priceWithTax: number }>, eligiblePaymentMethods: Array<{ code: string, name: string, description: string, isEligible: boolean }> };
 
 export type SetCustomerForOrderMutationVariables = Exact<{
   input: CreateCustomerInput;
@@ -565,20 +567,20 @@ export type OrderByCodeQueryVariables = Exact<{
 }>;
 
 
-export type OrderByCodeQuery = { orderByCode: { id: string, code: string, state: string, active: boolean, totalQuantity: number, subTotalWithTax: number, shippingWithTax: number, totalWithTax: number, customer: { id: string, firstName: string, lastName: string, emailAddress: string, phoneNumber: string | null } | null, shippingAddress: { fullName: string | null, streetLine1: string | null, streetLine2: string | null, city: string | null, province: string | null, postalCode: string | null, phoneNumber: string | null } | null, shippingLines: Array<{ priceWithTax: number, shippingMethod: { id: string, name: string } }>, discounts: Array<{ description: string, amountWithTax: number }>, lines: Array<{ id: string, quantity: number, unitPriceWithTax: number, linePriceWithTax: number, featuredAsset: { preview: string } | null, productVariant: { id: string, name: string, sku: string, product: { id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null, variants: Array<{ priceWithTax: number, customFields: { regularPrice: number | null } | null }> } } }> } | null };
+export type OrderByCodeQuery = { orderByCode: { id: string, code: string, state: string, active: boolean, totalQuantity: number, subTotalWithTax: number, shippingWithTax: number, totalWithTax: number, customer: { id: string, firstName: string, lastName: string, emailAddress: string, phoneNumber: string | null } | null, shippingAddress: { fullName: string | null, streetLine1: string | null, streetLine2: string | null, city: string | null, province: string | null, postalCode: string | null, phoneNumber: string | null } | null, shippingLines: Array<{ priceWithTax: number, shippingMethod: { id: string, name: string } }>, discounts: Array<{ description: string, amountWithTax: number }>, lines: Array<{ id: string, quantity: number, unitPriceWithTax: number, linePriceWithTax: number, featuredAsset: { preview: string } | null, productVariant: { id: string, name: string, sku: string, product: { id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null, quoteOnly: boolean | null } | null, variants: Array<{ priceWithTax: number, customFields: { regularPrice: number | null } | null }> } } }> } | null };
 
-export type ProductSummaryFragment = { id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null, variants: Array<{ priceWithTax: number, customFields: { regularPrice: number | null } | null }> };
+export type ProductSummaryFragment = { id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null, quoteOnly: boolean | null } | null, variants: Array<{ priceWithTax: number, customFields: { regularPrice: number | null } | null }> };
 
-export type VariantSummaryFragment = { id: string, priceWithTax: number, product: { id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null, variants: Array<{ priceWithTax: number, customFields: { regularPrice: number | null } | null }> } };
+export type VariantSummaryFragment = { id: string, priceWithTax: number, product: { id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null, quoteOnly: boolean | null } | null, variants: Array<{ priceWithTax: number, customFields: { regularPrice: number | null } | null }> } };
 
-export type CollectionWithProductsFragment = { id: string, name: string, slug: string, description: string, customFields: { legacyId: number | null } | null, productVariants: { totalItems: number, items: Array<{ id: string, priceWithTax: number, product: { id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null, variants: Array<{ priceWithTax: number, customFields: { regularPrice: number | null } | null }> } }> } };
+export type CollectionWithProductsFragment = { id: string, name: string, slug: string, description: string, customFields: { legacyId: number | null } | null, productVariants: { totalItems: number, items: Array<{ id: string, priceWithTax: number, product: { id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null, quoteOnly: boolean | null } | null, variants: Array<{ priceWithTax: number, customFields: { regularPrice: number | null } | null }> } }> } };
 
 export type ProductByLegacyIdQueryVariables = Exact<{
   legacyId: number;
 }>;
 
 
-export type ProductByLegacyIdQuery = { products: { items: Array<{ description: string, id: string, name: string, slug: string, seo: { metaTitle: string | null, metaDescription: string | null } | null, assets: Array<{ preview: string, customFields: { alt: string | null } | null }>, facetValues: Array<{ id: string, name: string, facet: { id: string, name: string } }>, collections: Array<{ id: string, name: string, slug: string, breadcrumbs: Array<{ id: string }>, customFields: { legacyId: number | null } | null, parent: { name: string, slug: string, customFields: { legacyId: number | null } | null } | null }>, variants: Array<{ id: string, name: string, sku: string, priceWithTax: number, stockLevel: string, options: Array<{ name: string }>, customFields: { regularPrice: number | null, saleEndsAt: string | null } | null }>, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null }> } };
+export type ProductByLegacyIdQuery = { products: { items: Array<{ description: string, id: string, name: string, slug: string, seo: { metaTitle: string | null, metaDescription: string | null } | null, assets: Array<{ preview: string, customFields: { alt: string | null } | null }>, facetValues: Array<{ id: string, name: string, facet: { id: string, name: string } }>, collections: Array<{ id: string, name: string, slug: string, breadcrumbs: Array<{ id: string }>, customFields: { legacyId: number | null } | null, parent: { name: string, slug: string, customFields: { legacyId: number | null } | null } | null }>, variants: Array<{ id: string, name: string, sku: string, priceWithTax: number, stockLevel: string, options: Array<{ name: string }>, customFields: { regularPrice: number | null, saleEndsAt: string | null } | null }>, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null, quoteOnly: boolean | null } | null }> } };
 
 export type CategoryLinkFragment = { id: string, name: string, slug: string, featuredAsset: { preview: string } | null, customFields: { legacyId: number | null } | null };
 
@@ -617,7 +619,7 @@ export type ProductsByIdsQueryVariables = Exact<{
 }>;
 
 
-export type ProductsByIdsQuery = { products: { items: Array<{ id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null, variants: Array<{ priceWithTax: number, customFields: { regularPrice: number | null } | null }> }> } };
+export type ProductsByIdsQuery = { products: { items: Array<{ id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null, quoteOnly: boolean | null } | null, variants: Array<{ priceWithTax: number, customFields: { regularPrice: number | null } | null }> }> } };
 
 export type CollectionBySlugQueryVariables = Exact<{
   slug: string;
@@ -625,7 +627,7 @@ export type CollectionBySlugQueryVariables = Exact<{
 }>;
 
 
-export type CollectionBySlugQuery = { collection: { id: string, name: string, slug: string, description: string, customFields: { legacyId: number | null } | null, productVariants: { totalItems: number, items: Array<{ id: string, priceWithTax: number, product: { id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null, variants: Array<{ priceWithTax: number, customFields: { regularPrice: number | null } | null }> } }> } } | null };
+export type CollectionBySlugQuery = { collection: { id: string, name: string, slug: string, description: string, customFields: { legacyId: number | null } | null, productVariants: { totalItems: number, items: Array<{ id: string, priceWithTax: number, product: { id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null, quoteOnly: boolean | null } | null, variants: Array<{ priceWithTax: number, customFields: { regularPrice: number | null } | null }> } }> } } | null };
 
 export type CollectionIdBySlugQueryVariables = Exact<{
   slug: string;
@@ -639,7 +641,7 @@ export type RankedProductsQueryVariables = Exact<{
 }>;
 
 
-export type RankedProductsQuery = { products: { totalItems: number, items: Array<{ id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null, variants: Array<{ priceWithTax: number, customFields: { regularPrice: number | null } | null }> }> } };
+export type RankedProductsQuery = { products: { totalItems: number, items: Array<{ id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null, quoteOnly: boolean | null } | null, variants: Array<{ priceWithTax: number, customFields: { regularPrice: number | null } | null }> }> } };
 
 export type LegacyImageQueryVariables = Exact<{
   imageId: number;
@@ -751,6 +753,7 @@ export const ProductSummaryFragmentDoc = new TypedDocumentString(`
     legacyId
     ean13
     urlCategory
+    quoteOnly
   }
   variants {
     priceWithTax
@@ -829,6 +832,7 @@ export const CartOrderFragmentDoc = new TypedDocumentString(`
     legacyId
     ean13
     urlCategory
+    quoteOnly
   }
   variants {
     priceWithTax
@@ -859,6 +863,7 @@ export const VariantSummaryFragmentDoc = new TypedDocumentString(`
     legacyId
     ean13
     urlCategory
+    quoteOnly
   }
   variants {
     priceWithTax
@@ -897,6 +902,7 @@ export const CollectionWithProductsFragmentDoc = new TypedDocumentString(`
     legacyId
     ean13
     urlCategory
+    quoteOnly
   }
   variants {
     priceWithTax
@@ -1182,6 +1188,7 @@ fragment ProductSummary on Product {
     legacyId
     ean13
     urlCategory
+    quoteOnly
   }
   variants {
     priceWithTax
@@ -1353,6 +1360,7 @@ fragment ProductSummary on Product {
     legacyId
     ean13
     urlCategory
+    quoteOnly
   }
   variants {
     priceWithTax
@@ -1487,6 +1495,7 @@ fragment ProductSummary on Product {
     legacyId
     ean13
     urlCategory
+    quoteOnly
   }
   variants {
     priceWithTax
@@ -1568,6 +1577,7 @@ export const ProductByLegacyIdDocument = new TypedDocumentString(`
     legacyId
     ean13
     urlCategory
+    quoteOnly
   }
   variants {
     priceWithTax
@@ -1693,6 +1703,7 @@ export const ProductsByIdsDocument = new TypedDocumentString(`
     legacyId
     ean13
     urlCategory
+    quoteOnly
   }
   variants {
     priceWithTax
@@ -1721,6 +1732,7 @@ export const CollectionBySlugDocument = new TypedDocumentString(`
     legacyId
     ean13
     urlCategory
+    quoteOnly
   }
   variants {
     priceWithTax
@@ -1781,6 +1793,7 @@ export const RankedProductsDocument = new TypedDocumentString(`
     legacyId
     ean13
     urlCategory
+    quoteOnly
   }
   variants {
     priceWithTax

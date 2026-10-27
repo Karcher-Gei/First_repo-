@@ -8,6 +8,8 @@ import { Pagination } from './Pagination';
 import { ProductCard } from './ProductCard';
 
 const sorts = (Object.keys(SORTS) as SortKey[]).map((key) => ({ key, label: SORTS[key].label }));
+/** The professional range is sold on quote only: no price to sort by, no stock to filter on. */
+const quoteOnlySorts = sorts.filter((sort) => !sort.key.startsWith('prix'));
 
 /**
  * Filters, active filter chips, product grid and pagination of a category, brand or search page.
@@ -26,6 +28,9 @@ export function ProductListing({
   base?: Record<string, string>;
   empty?: string;
 }) {
+  const quoteOnly =
+    listing.products.length > 0 &&
+    listing.products.every(({ product }) => product.customFields?.quoteOnly);
   const hrefWith = (changes: Partial<CategoryParams>) =>
     path + categoryQuery({ ...params, page: 1, ...changes }, base);
   const facetValueNames = new Map(
@@ -51,7 +56,8 @@ export function ProductListing({
           base={base}
           facets={listing.facets}
           params={params}
-          sorts={sorts}
+          sorts={quoteOnly ? quoteOnlySorts : sorts}
+          stockFilter={!quoteOnly}
         />
       </aside>
       <div className="space-y-6">

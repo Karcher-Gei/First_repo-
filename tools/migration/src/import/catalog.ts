@@ -12,6 +12,7 @@ import type {
 import { codeOf, imageRelativePath, orNull, priceWithTaxMillimes, validEan } from '../util';
 import { ok, type VendureAdmin } from '../vendure-admin';
 import { importFeaturedCollection } from './homepage';
+import { quoteOnlyCategories, quoteOnlyProducts } from './quote-only';
 import type { Report } from './report';
 import { pickSpecificPrice, prestaShopDate, saleOf, specificPriceStatus, type Sale } from './sales';
 
@@ -24,6 +25,8 @@ export interface CatalogOptions {
   limit?: number;
   /** VAT rate when a product's tax rules group has no rule for Tunisia. */
   defaultTaxRate: number;
+  /** Categories of the quote-only professional range; empty: the "Professionnel" tree. */
+  quoteOnlyCategoryIds: number[];
 }
 
 /** What the catalog import created, for the steps that follow it. */
@@ -97,6 +100,16 @@ export async function importCatalog(
     return status === 'applies';
   });
 
+  // The professional range is sold on quote only: no price or stock on the site, no sale.
+  const allCategories = await ps.categories();
+  const assignments = await ps.categoryProducts();
+  const quoteOnly = quoteOnlyProducts(
+    products,
+    assignments,
+    quoteOnlyCategories(allCategories, options.quoteOnlyCategoryIds),
+  );
+  report.count('quote-only products (professional range)', quoteOnly.size);
+
   const existing = await existingProducts(admin);
   const productIds = new Map<number, string>();
   for (const product of products) {
@@ -122,6 +135,7 @@ export async function importCatalog(
         urlCategory: product.category_slug,
         addedAt: prestaShopDate(product.date_add)?.toISOString() ?? null,
         unitsSold: Number(product.units_sold),
+        quoteOnly: quoteOnly.has(product.id_product),
       },
       translations: [
         {
@@ -161,7 +175,11 @@ export async function importCatalog(
         combinations: combinations.get(product.id_product) ?? [],
         existingVariants: found?.variants ?? [],
         priceOf: (impact) => priceWithTaxMillimes(Number(product.price) + Number(impact), rate),
+        quoteOnly: quoteOnly.has(product.id_product),
         saleOf: (attributeId, impact) => {
+          if (quoteOnly.has(product.id_product)) {
+            return null;
+          }
           const sp = pickSpecificPrice(applicable, product.id_product, attributeId);
           return sp
             ? saleOf(sp, {
@@ -181,14 +199,7 @@ export async function importCatalog(
     }
   }
 
-  await importCategories(
-    admin,
-    await ps.categories(),
-    await ps.categoryProducts(),
-    productIds,
-    options.images,
-    report,
-  );
+  await importCategories(admin, allCategories, assignments, productIds, options.images, report);
   await importFeaturedCollection(ps, admin, productIds, report);
   return { productIds };
 }
@@ -506,6 +517,8 @@ async function syncVariants(
     existingVariants: { id: string; sku: string }[];
     priceOf: (impactExclTax: string | number) => number;
     saleOf: (productAttributeId: number, impactExclTax: string | number) => Sale | null;
+    /** Quote-only variants do not track inventory, so no stock shows through the search. */
+    quoteOnly: boolean;
     stockOf: (productAttributeId: number) => number;
     taxCategoryId: string;
     report: Report;
@@ -520,6 +533,7 @@ async function syncVariants(
     }
     return {
       price: sale?.price ?? price,
+      trackInventory: args.quoteOnly ? 'FALSE' : 'INHERIT',
       customFields: {
         regularPrice: sale?.regularPrice ?? null,
         saleEndsAt: sale?.endsAt?.toISOString() ?? null,
@@ -569,6 +583,7 @@ async function syncVariants(
           id: match.id,
           sku: variant.sku,
           price: variant.price,
+          trackInventory: variant.trackInventory,
           customFields: variant.customFields,
           stockOnHand: variant.stockOnHand,
           taxCategoryId: args.taxCategoryId,
@@ -632,6 +647,7 @@ async function syncVariants(
         productId: args.productId,
         sku: variant.sku,
         price: variant.price,
+        trackInventory: variant.trackInventory,
         customFields: variant.customFields,
         stockOnHand: variant.stockOnHand,
         taxCategoryId: args.taxCategoryId,

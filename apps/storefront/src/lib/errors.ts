@@ -5,6 +5,8 @@ const MESSAGES: Record<string, string> = {
   INSUFFICIENT_STOCK_ERROR: 'Stock insuffisant pour cette quantité.',
   NEGATIVE_QUANTITY_ERROR: 'La quantité doit être positive.',
   ORDER_LIMIT_ERROR: 'Quantité maximale atteinte pour cette commande.',
+  ORDER_INTERCEPTOR_ERROR:
+    'Ce produit de la gamme professionnelle est vendu sur devis : demandez un devis.',
   ORDER_MODIFICATION_ERROR: 'Cette commande ne peut plus être modifiée.',
   ORDER_STATE_TRANSITION_ERROR: 'Cette étape de la commande n’est pas possible pour le moment.',
   NO_ACTIVE_ORDER_ERROR: 'Votre panier est vide.',

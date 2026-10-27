@@ -31,14 +31,96 @@ function variantLabel(variant: BuyBoxVariant): string {
 
 /**
  * Price, stock, version choice (PrestaShop combinations), add to cart and quote request; on small
- * screens a bar with the price and the add button stays at the bottom of the screen.
+ * screens a bar with the price and the add button stays at the bottom of the screen. A product of
+ * the professional range (`quoteOnly`) shows neither price nor stock: only the quote request.
  */
-export function BuyBox({ productId, variants }: { productId: string; variants: BuyBoxVariant[] }) {
+export function BuyBox({
+  productId,
+  variants,
+  quoteOnly = false,
+}: {
+  productId: string;
+  variants: BuyBoxVariant[];
+  quoteOnly?: boolean;
+}) {
   const [selectedId, setSelectedId] = useState(variants[0]?.id);
   const variant = variants.find((v) => v.id === selectedId) ?? variants[0];
   if (!variant) {
     return null;
   }
+  const versions =
+    variants.length > 1 ? (
+      <fieldset className="space-y-2">
+        <legend className="mb-2 text-sm font-bold uppercase tracking-wide">Version</legend>
+        <div className="flex flex-wrap gap-2">
+          {variants.map((v) => (
+            <label
+              key={v.id}
+              className={cn(
+                'cursor-pointer rounded-card px-4 py-2 text-sm font-semibold ring-1 transition',
+                v.id === variant.id ? 'bg-ink text-white ring-ink' : 'ring-line hover:ring-ink',
+              )}
+            >
+              <input
+                type="radio"
+                name="variant"
+                value={v.id}
+                checked={v.id === variant.id}
+                onChange={() => setSelectedId(v.id)}
+                className="sr-only"
+              />
+              {variantLabel(v)}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+    ) : null;
+  const quoteHref = `/devis?produit=${productId}&variante=${variant.id}`;
+
+  if (quoteOnly) {
+    return (
+      <div className="space-y-5 rounded-card bg-surface p-5 ring-1 ring-line md:p-6">
+        {versions}
+        <div className="space-y-2">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-ink-muted">
+            Gamme professionnelle
+          </p>
+          <p className="font-heading text-3xl font-extrabold uppercase leading-none">
+            Prix sur devis
+          </p>
+          <p className="text-sm text-ink-muted">
+            Recevez une offre adaptée à votre activité : quantités, accessoires, mise en service et
+            entretien. Réf. {variant.sku}
+          </p>
+        </div>
+        <Link
+          href={quoteHref}
+          className="flex h-12 items-center justify-center rounded-card bg-brand font-heading text-lg font-bold uppercase tracking-wide hover:brightness-95"
+        >
+          Demander un devis
+        </Link>
+        <Link
+          href="/nous-contacter"
+          className="flex h-11 items-center justify-center rounded-card text-sm font-bold uppercase tracking-wide ring-1 ring-ink hover:bg-ink hover:text-white"
+        >
+          Parler à un conseiller
+        </Link>
+
+        <div className="fixed inset-x-0 bottom-0 z-30 flex items-center gap-3 border-t border-line bg-surface/95 px-4 py-3 backdrop-blur md:hidden">
+          <p className="min-w-0 flex-1 font-heading text-lg font-extrabold uppercase leading-none">
+            Prix sur devis
+          </p>
+          <Link
+            href={quoteHref}
+            className="flex h-11 items-center rounded-card bg-brand px-5 font-heading font-bold uppercase"
+          >
+            Demander un devis
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   const stock = STOCK[variant.stockLevel];
   const outOfStock = variant.stockLevel === 'OUT_OF_STOCK';
   const regularPrice = variant.customFields?.regularPrice ?? null;
@@ -47,32 +129,7 @@ export function BuyBox({ productId, variants }: { productId: string; variants: B
 
   return (
     <div className="space-y-5 rounded-card bg-surface p-5 ring-1 ring-line md:p-6">
-      {variants.length > 1 ? (
-        <fieldset className="space-y-2">
-          <legend className="mb-2 text-sm font-bold uppercase tracking-wide">Version</legend>
-          <div className="flex flex-wrap gap-2">
-            {variants.map((v) => (
-              <label
-                key={v.id}
-                className={cn(
-                  'cursor-pointer rounded-card px-4 py-2 text-sm font-semibold ring-1 transition',
-                  v.id === variant.id ? 'bg-ink text-white ring-ink' : 'ring-line hover:ring-ink',
-                )}
-              >
-                <input
-                  type="radio"
-                  name="variant"
-                  value={v.id}
-                  checked={v.id === variant.id}
-                  onChange={() => setSelectedId(v.id)}
-                  className="sr-only"
-                />
-                {variantLabel(v)}
-              </label>
-            ))}
-          </div>
-        </fieldset>
-      ) : null}
+      {versions}
 
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
@@ -111,7 +168,7 @@ export function BuyBox({ productId, variants }: { productId: string; variants: B
       <AddToCartForm key={variant.id} variantId={variant.id} disabled={outOfStock} />
 
       <Link
-        href={`/devis?produit=${productId}&variante=${variant.id}`}
+        href={quoteHref}
         className="flex h-11 items-center justify-center rounded-card text-sm font-bold uppercase tracking-wide ring-1 ring-ink hover:bg-ink hover:text-white"
       >
         Demander un devis

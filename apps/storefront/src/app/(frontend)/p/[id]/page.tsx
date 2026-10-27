@@ -96,6 +96,8 @@ export default async function ProductPage({ params, searchParams }: Props) {
   // Combinations: the lowest price and any stock stand for the product in search results.
   const variant = [...product.variants].sort((a, b) => a.priceWithTax - b.priceWithTax)[0];
   const inStock = product.variants.some((v) => v.stockLevel !== 'OUT_OF_STOCK');
+  // Professional range: price and stock on quote only, never on the page.
+  const quoteOnly = product.customFields?.quoteOnly === true;
   const category = mainCategory(product);
   const crumbs: Crumb[] = [
     { name: 'Accueil', href: '/' },
@@ -123,10 +125,14 @@ export default async function ProductPage({ params, searchParams }: Props) {
       images: images.map((image) => `${image.preview}?preset=large`),
       sku: variant?.sku,
       gtin13: product.customFields?.ean13,
-      price: (variant?.priceWithTax ?? 0) / 1000,
-      priceValidUntil: variant?.customFields?.saleEndsAt?.slice(0, 10),
-      currency: 'TND',
-      inStock,
+      offer: quoteOnly
+        ? undefined
+        : {
+            price: (variant?.priceWithTax ?? 0) / 1000,
+            priceValidUntil: variant?.customFields?.saleEndsAt?.slice(0, 10),
+            currency: 'TND',
+            inStock,
+          },
     }),
     breadcrumbJsonLd(
       crumbs.map((crumb) => ({ name: crumb.name, url: absoluteUrl(crumb.href ?? href ?? '/') })),
@@ -183,7 +189,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
                 </p>
               ) : null}
             </header>
-            <BuyBox productId={product.id} variants={product.variants} />
+            <BuyBox productId={product.id} variants={product.variants} quoteOnly={quoteOnly} />
             <ServiceHighlights compact />
           </div>
         </div>

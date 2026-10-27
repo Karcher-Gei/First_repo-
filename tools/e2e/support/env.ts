@@ -14,6 +14,13 @@ export const FC3 = {
   path: '/home-garden/867-aspirateur-laveur-fc-3-4054278634537.html',
   sku: '1.055-300.0',
 };
+/** Professional range (category "Professionnel"): sold on quote only, 10 000 DT in the dashboard. */
+export const KM70 = {
+  path: '/professionnel/104-balayeuse-km-70-20-c-4039784709412.html',
+  legacyId: 104,
+  sku: 'PS-104',
+};
+export const SHOP_API = process.env.E2E_SHOP_API ?? 'http://localhost:3000/shop-api';
 export const K4 = {
   path: '/nettoyeurs-haute-pression/101-nettoyeur-haute-pression-k-4-power-control-4054278800001.html',
 };

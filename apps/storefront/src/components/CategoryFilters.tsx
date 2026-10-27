@@ -20,12 +20,15 @@ export function CategoryFilters({
   facets,
   params,
   sorts,
+  stockFilter = true,
 }: {
   action: string;
   base?: Record<string, string>;
   facets: FacetGroup[];
   params: CategoryParams;
   sorts: { key: SortKey; label: string }[];
+  /** Off for the professional range, sold on quote only: its stock is never shown. */
+  stockFilter?: boolean;
 }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
@@ -96,13 +99,15 @@ export function CategoryFilters({
             ))}
           </select>
         </label>
-        <fieldset className="space-y-2">
-          <legend className="mb-1 font-heading text-lg font-bold uppercase">Disponibilité</legend>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" name="stock" value="1" defaultChecked={params.inStock} />
-            En stock uniquement
-          </label>
-        </fieldset>
+        {stockFilter ? (
+          <fieldset className="space-y-2">
+            <legend className="mb-1 font-heading text-lg font-bold uppercase">Disponibilité</legend>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" name="stock" value="1" defaultChecked={params.inStock} />
+              En stock uniquement
+            </label>
+          </fieldset>
+        ) : null}
         {facets.map((facet) => (
           <fieldset key={facet.id} className="space-y-2">
             <legend className="mb-1 font-heading text-lg font-bold uppercase">{facet.name}</legend>

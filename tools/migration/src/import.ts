@@ -72,6 +72,10 @@ async function main(): Promise<void> {
           images: imageSourceFromEnv(),
           limit: values.limit ? Number(values.limit) : undefined,
           defaultTaxRate: 19,
+          quoteOnlyCategoryIds: (process.env.PS_QUOTE_ONLY_CATEGORY_IDS ?? '')
+            .split(',')
+            .map(Number)
+            .filter((id) => id > 0),
         },
         report,
       );
