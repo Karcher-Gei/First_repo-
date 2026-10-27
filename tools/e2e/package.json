@@ -1,0 +1,17 @@
+{
+  "name": "@karcher/e2e",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Browser tests of the storefront against the running stack and the PrestaShop fixture import",
+  "type": "module",
+  "scripts": {
+    "test:e2e": "playwright test",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@karcher/config": "workspace:*",
+    "@playwright/test": "1.63.0",
+    "@types/node": "^24.0.0",
+    "typescript": "5.9.3"
+  }
+}

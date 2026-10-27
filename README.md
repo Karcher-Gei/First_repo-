@@ -59,7 +59,8 @@ Both database schemas come from migrations, never from automatic sync:
 | -------------------------------------------------- | --------------------------------------------------------------------- |
 | `pnpm dev`                                         | Runs the storefront, Vendure server, worker and dashboard             |
 | `pnpm typecheck`                                   | TypeScript across every package                                       |
-| `pnpm test`                                        | Unit tests (legacy URL parsing in `packages/seo`)                     |
+| `pnpm test`                                        | Unit tests (legacy URLs in `packages/seo`, PrestaShop price rules)    |
+| `pnpm test:e2e`                                    | Browser tests against the running stack (see "Browser tests")         |
 | `pnpm codegen`                                     | Regenerates Shop API types (Vendure server must be running)           |
 | `pnpm --filter @karcher/storefront generate:types` | Regenerates `payload-types.ts` after a CMS schema change              |
 | `pnpm --filter @karcher/migration inventory`       | Lists every PrestaShop URL from a database copy, for the Gate A check |
@@ -160,6 +161,25 @@ with combinations, two VAT rates, inactive entries and both kinds of password ha
   and the generated files in `packages/graphql/src/generated` are committed, so builds never need a running server.
   Types are matched to the exact text of each document: format a file before running `pnpm codegen`, not after.
 - Prices are integers in millimes (TND has 3 decimals; see `TndMoneyStrategy`).
+
+## Browser tests
+
+`tools/e2e` drives the storefront in Chromium (Playwright): cart, guest checkout, Konnect success and
+retry (against a local mock), the account lifecycle with its e-mails, quotes and warranty, filters and
+search, sales, brand pages, and what the PrestaShop import must produce. They run against the running stack
+loaded with the test fixture:
+
+```bash
+mysql prestashop < tools/migration/test/fixture.sql   # tools/migration/.env pointing at it
+pnpm dev                                              # with KONNECT_API_URL=http://localhost:4010/api/v2
+pnpm --filter @karcher/server setup:channel
+pnpm --filter @karcher/migration import:shop
+pnpm --filter @karcher/storefront import:cms
+pnpm test:e2e
+```
+
+The Konnect mock starts with the tests; the setup gives the product they buy enough stock. Run them again
+after the real import only on a copy: they place orders and create customers.
 
 ## Catalog cache
 

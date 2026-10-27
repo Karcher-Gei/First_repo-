@@ -11,6 +11,7 @@
     "build": "turbo run build",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
+    "test:e2e": "pnpm --filter @karcher/e2e test:e2e",
     "codegen": "turbo run codegen",
     "db:up": "docker compose up -d postgres",
     "db:down": "docker compose down",

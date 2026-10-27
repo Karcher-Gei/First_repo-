@@ -21,3 +21,7 @@ tools/migration/out
 .env
 .env.*
 !.env.example
+
+# Playwright
+tools/e2e/test-results
+tools/e2e/playwright-report
