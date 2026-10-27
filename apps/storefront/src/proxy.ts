@@ -2,16 +2,17 @@ import { parseLegacyPath } from '@karcher/seo';
 import { NextResponse, type NextRequest } from 'next/server';
 
 /** Internal route prefixes; only reachable through the rewrites below. */
-const INTERNAL = /^\/(p|c|s|img)(\/|$)/;
+const INTERNAL = /^\/(p|c|b|s|img)(\/|$)/;
 
 /**
  * Maps karcher-gei.tn's PrestaShop URLs onto internal routes without changing the address bar:
  *   /home-garden/867-aspirateur-laveur-fcv-3.html -> /p/867
  *   /12-home-garden                               -> /c/12
+ *   /2_karcher                                    -> /b/2
  *   /promotions                                   -> /s/prices-drop
  *   /2292-home_default/aspirateur-laveur-fcv-3.jpg -> /img/2292/home_default
  * The original path travels as ?from=, so each page can 301 to its canonical URL.
- * /content/{id}-{slug} needs no rewrite: it is a real route.
+ * /content/{id}-{slug} needs no rewrite: it is a real route. Supplier pages are gone: 301 to /brands.
  */
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -27,12 +28,20 @@ export function proxy(request: NextRequest) {
   }
 
   const url = request.nextUrl.clone();
+  if (route.kind === 'supplier') {
+    url.pathname = '/brands';
+    url.search = '';
+    return NextResponse.redirect(url, 301);
+  }
   switch (route.kind) {
     case 'product':
       url.pathname = `/p/${route.productId}`;
       break;
     case 'category':
       url.pathname = `/c/${route.categoryId}`;
+      break;
+    case 'brand':
+      url.pathname = `/b/${route.brandId}`;
       break;
     case 'static':
       url.pathname = `/s/${route.page}`;

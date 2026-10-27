@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { categoryPath, cmsPath, imagePath, parseLegacyPath, productPath, slugify } from './legacy-urls';
+import { brandPath, categoryPath, cmsPath, imagePath, parseLegacyPath, productPath, slugify } from './legacy-urls';
 
 // Real paths taken from karcher-gei.tn's sitemap and pages (October 2026).
 describe('parseLegacyPath', () => {
@@ -65,6 +65,13 @@ describe('parseLegacyPath', () => {
     });
   });
 
+  it('parses brand and supplier URLs', () => {
+    expect(parseLegacyPath('/2_karcher')).toEqual({ kind: 'brand', brandId: 2, slug: 'karcher' });
+    expect(parseLegacyPath('/3__karcher-france')).toEqual({ kind: 'supplier' });
+    expect(parseLegacyPath('/fournisseur')).toEqual({ kind: 'supplier' });
+    expect(parseLegacyPath('/2_')).toBeNull();
+  });
+
   it('parses the fixed pages', () => {
     expect(parseLegacyPath('/promotions')).toEqual({ kind: 'static', page: 'prices-drop' });
     expect(parseLegacyPath('/nous-contacter')).toEqual({ kind: 'static', page: 'contact' });
@@ -88,6 +95,7 @@ describe('path builders', () => {
       productPath({ id: 1, slug: 'k2-classic-nettoyeur-haute-pression', category: 'home-garden', ean13: '4054278249025' }),
       productPath({ id: 867, slug: 'aspirateur-laveur-fcv-3', category: 'home-garden' }),
       categoryPath({ id: 12, slug: 'home-garden' }),
+      brandPath({ id: 2, slug: 'karcher' }),
       cmsPath({ id: 62, slug: 'devenir-revendeur' }),
       imagePath({ imageId: 2292, size: 'home_default', slug: 'aspirateur-laveur-fcv-3' }),
     ];
@@ -95,6 +103,7 @@ describe('path builders', () => {
       '/home-garden/1-k2-classic-nettoyeur-haute-pression-4054278249025.html',
       '/home-garden/867-aspirateur-laveur-fcv-3.html',
       '/12-home-garden',
+      '/2_karcher',
       '/content/62-devenir-revendeur',
       '/2292-home_default/aspirateur-laveur-fcv-3.jpg',
     ]);

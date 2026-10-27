@@ -14,6 +14,9 @@ graphql(`
     slug
     featuredAsset {
       preview
+      customFields {
+        alt
+      }
     }
     customFields {
       legacyId
@@ -65,6 +68,9 @@ export const PRODUCT_BY_LEGACY_ID = graphql(`
         }
         assets {
           preview
+          customFields {
+            alt
+          }
         }
         facetValues {
           id
@@ -146,6 +152,26 @@ export const COLLECTION_BY_LEGACY_ID = graphql(`
         children {
           ...CategoryLink
           position
+        }
+      }
+    }
+  }
+`);
+
+/** Brands: values of the "marque" facet, with the PrestaShop manufacturer id of their URL. */
+export const BRANDS = graphql(`
+  query Brands {
+    facets(options: { filter: { code: { eq: "marque" } } }) {
+      items {
+        values {
+          id
+          name
+          customFields {
+            legacyManufacturerId
+            description
+            metaTitle
+            metaDescription
+          }
         }
       }
     }

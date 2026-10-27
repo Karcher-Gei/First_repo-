@@ -1,9 +1,11 @@
 import { STATIC_PAGES, type StaticPageKey } from '@karcher/seo';
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import { ContactForm } from '@/components/ContactForm';
 import { ProductCard } from '@/components/ProductCard';
+import { getBrands } from '@/lib/brands';
 import { getCms } from '@/lib/cms';
 import { COLLECTION_BY_SLUG } from '@/lib/queries';
 import { shopQuery } from '@/lib/vendure';
@@ -37,7 +39,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!isPageKey(page)) {
     return {};
   }
-  return { title: PAGES[page].title, alternates: { canonical: PATH_OF[page] } };
+  // Meta tags migrated from PrestaShop (Préférences > Trafic & SEO), edited in Payload.
+  const cms = await getCms();
+  const { pages } = await cms.findGlobal({ slug: 'fixed-pages', depth: 0 });
+  const meta = pages?.find((entry) => entry.page === page);
+  return {
+    title: meta?.title ? { absolute: meta.title } : PAGES[page].title,
+    description: meta?.description || undefined,
+    alternates: { canonical: PATH_OF[page] },
+  };
 }
 
 export default async function StaticPage({ params, searchParams }: Props) {
@@ -53,6 +63,7 @@ export default async function StaticPage({ params, searchParams }: Props) {
         {title}
       </h1>
       {collectionSlug ? <CollectionGrid slug={collectionSlug} /> : null}
+      {page === 'brands' ? <BrandList /> : null}
       {page === 'stores' || page === 'contact' ? <StoreList /> : null}
       {page === 'contact' ? <ContactForm sent={envoye === '1'} /> : null}
     </section>
@@ -75,6 +86,35 @@ async function CollectionGrid({ slug }: { slug: string }) {
         />
       ))}
     </div>
+  );
+}
+
+async function BrandList() {
+  const brands = await getBrands();
+  if (brands.length === 0) {
+    return <p className="text-ink-muted">Aucune marque pour le moment.</p>;
+  }
+  return (
+    <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+      {brands.map((brand) => (
+        <li key={brand.id}>
+          <Link
+            href={brand.href}
+            className="group flex h-full flex-col justify-between gap-6 rounded-card bg-stage p-6 transition-shadow hover:shadow-lg"
+          >
+            <span className="font-heading text-3xl font-extrabold uppercase leading-none">
+              {brand.name}
+            </span>
+            <span className="inline-flex items-center gap-2 text-sm font-bold uppercase">
+              Voir les produits
+              <span aria-hidden="true" className="transition-transform group-hover:translate-x-1">
+                →
+              </span>
+            </span>
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 }
 

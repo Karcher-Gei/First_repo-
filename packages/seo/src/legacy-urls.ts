@@ -5,6 +5,8 @@
  *   category  /{id}-{slug}                                          /12-home-garden
  *   cms       /content/{id}-{slug}                                  /content/62-devenir-revendeur
  *   image     /{imageId}-{size}/{slug}.{ext}                        /2292-home_default/aspirateur-laveur-fcv-3.jpg
+ *   brand     /{id}_{slug}                                          /2_karcher
+ *   supplier  /{id}__{slug}, /fournisseur                           /3__karcher-france (no pages: sent to /brands)
  *   static    fixed paths                                           /promotions, /nous-contacter, ...
  *
  * Pages are found by ID, never by slug: a wrong slug or category answers 301 to the canonical path.
@@ -34,6 +36,8 @@ export type LegacyRoute =
   | { kind: 'category'; categoryId: number; slug: string }
   | { kind: 'cms'; cmsId: number; slug: string }
   | { kind: 'image'; imageId: number; size: string; slug: string; ext: string }
+  | { kind: 'brand'; brandId: number; slug: string }
+  | { kind: 'supplier' }
   | { kind: 'static'; page: StaticPageKey };
 
 const SLUG = '[a-z0-9]+(?:-[a-z0-9]+)*';
@@ -45,6 +49,8 @@ const PRODUCT_RE = new RegExp(
 const CATEGORY_RE = new RegExp(`^/(\\d+)-(${SLUG})$`);
 const CMS_RE = new RegExp(`^/content/(\\d+)-(${SLUG})$`);
 const IMAGE_RE = new RegExp(`^/(\\d+)-([a-z_]+)/(${SLUG})\\.(jpe?g|png|webp|gif)$`);
+const BRAND_RE = new RegExp(`^/(\\d+)_(${SLUG})$`);
+const SUPPLIER_RE = new RegExp(`^/(?:\\d+__${SLUG}|fournisseur)$`);
 
 /** Parses a request path (no domain, no query string) into the page it addresses, or null. */
 export function parseLegacyPath(rawPath: string): LegacyRoute | null {
@@ -82,6 +88,15 @@ export function parseLegacyPath(rawPath: string): LegacyRoute | null {
     return { kind: 'category', categoryId: Number(m[1]), slug: m[2]! };
   }
 
+  m = BRAND_RE.exec(path);
+  if (m) {
+    return { kind: 'brand', brandId: Number(m[1]), slug: m[2]! };
+  }
+
+  if (SUPPLIER_RE.test(path)) {
+    return { kind: 'supplier' };
+  }
+
   return null;
 }
 
@@ -101,6 +116,10 @@ export function productPath({ id, slug, category, ean13 }: ProductPathInput): st
 
 export function categoryPath({ id, slug }: { id: number; slug: string }): string {
   return `/${id}-${slug}`;
+}
+
+export function brandPath({ id, slug }: { id: number; slug: string }): string {
+  return `/${id}_${slug}`;
 }
 
 export function cmsPath({ id, slug }: { id: number; slug: string }): string {

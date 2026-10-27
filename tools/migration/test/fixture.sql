@@ -7,7 +7,8 @@ DROP TABLE IF EXISTS ka_lang, ka_country, ka_state, ka_tax, ka_tax_rules_group, 
   ka_category, ka_category_lang, ka_category_product, ka_product, ka_product_lang, ka_product_attribute,
   ka_product_attribute_combination, ka_attribute, ka_attribute_lang, ka_attribute_group_lang,
   ka_stock_available, ka_feature_lang, ka_feature_value_lang, ka_feature_product, ka_image,
-  ka_customer, ka_address, ka_cms, ka_cms_lang;
+  ka_customer, ka_address, ka_cms, ka_cms_lang, ka_image_lang, ka_manufacturer, ka_manufacturer_lang,
+  ka_meta, ka_meta_lang;
 
 CREATE TABLE ka_lang (id_lang INT PRIMARY KEY, iso_code VARCHAR(2));
 INSERT INTO ka_lang VALUES (1, 'fr');
@@ -43,13 +44,13 @@ CREATE TABLE ka_category_product (id_category INT, id_product INT, position INT)
 INSERT INTO ka_category_product VALUES (2, 867, 0), (12, 867, 0), (14, 867, 0), (12, 101, 1), (13, 101, 0), (13, 102, 1), (13, 103, 2), (15, 104, 0);
 
 -- price is excluding VAT, as PrestaShop stores it
-CREATE TABLE ka_product (id_product INT PRIMARY KEY, id_tax_rules_group INT, reference VARCHAR(64), ean13 VARCHAR(13), price DECIMAL(20,6), active TINYINT, id_category_default INT, date_add DATETIME);
+CREATE TABLE ka_product (id_product INT PRIMARY KEY, id_tax_rules_group INT, reference VARCHAR(64), ean13 VARCHAR(13), price DECIMAL(20,6), active TINYINT, id_category_default INT, id_manufacturer INT, date_add DATETIME);
 INSERT INTO ka_product VALUES
-  (867, 1, '1.055-300.0', '4054278634537', 1296.218487, 1, 12, '2023-04-01 10:00:00'),
-  (101, 1, '1.324-030.0', '4054278800001', 714.285714, 1, 13, '2023-05-01 10:00:00'),
-  (102, 2, '2.643-233.0', '123', 46.728972, 1, 13, '2023-06-01 10:00:00'),
-  (103, 1, '1.673-121.0', '', 300.000000, 0, 13, '2019-01-01 10:00:00'),
-  (104, 1, '', '4039784709412', 8403.361345, 1, 15, '2024-01-01 10:00:00');
+  (867, 1, '1.055-300.0', '4054278634537', 1296.218487, 1, 12, 2, '2023-04-01 10:00:00'),
+  (101, 1, '1.324-030.0', '4054278800001', 714.285714, 1, 13, 2, '2023-05-01 10:00:00'),
+  (102, 2, '2.643-233.0', '123', 46.728972, 1, 13, 0, '2023-06-01 10:00:00'),
+  (103, 1, '1.673-121.0', '', 300.000000, 0, 13, 2, '2019-01-01 10:00:00'),
+  (104, 1, '', '4039784709412', 8403.361345, 1, 15, 5, '2024-01-01 10:00:00');
 CREATE TABLE ka_product_lang (id_product INT, id_shop INT, id_lang INT, name VARCHAR(128), description TEXT, description_short TEXT, link_rewrite VARCHAR(128), meta_title VARCHAR(255), meta_description VARCHAR(512));
 INSERT INTO ka_product_lang VALUES
   (867, 1, 1, 'Aspirateur laveur FC 3', '<p>Le nettoyeur de sols <strong>FC 3</strong> aspire et lave en un seul passage.</p>', '<p>Aspire et lave.</p>', 'aspirateur-laveur-fc-3', 'Aspirateur laveur FC 3 Kärcher | Karcher Tunisie', 'Nettoyeur de sols FC 3 : aspire et lave en un passage.'),
@@ -82,6 +83,39 @@ INSERT INTO ka_feature_product VALUES (1, 867, 1), (2, 867, 4), (1, 101, 2), (2,
 
 CREATE TABLE ka_image (id_image INT PRIMARY KEY, id_product INT, position INT, cover TINYINT);
 INSERT INTO ka_image VALUES (2292, 867, 1, 1), (2293, 867, 2, NULL), (3001, 101, 1, 1), (3002, 104, 1, 1), (3003, 104, 2, NULL);
+-- Legends become the images' alt text; an empty legend falls back to the product name.
+CREATE TABLE ka_image_lang (id_image INT, id_lang INT, legend VARCHAR(128));
+INSERT INTO ka_image_lang VALUES
+  (2292, 1, 'Aspirateur laveur FC 3 Kärcher'), (2293, 1, 'FC 3 : réservoir d’eau propre'),
+  (3001, 1, ''), (3002, 1, 'Balayeuse manuelle KM 70/20 C'), (3003, 1, 'KM 70/20 C de côté');
+
+-- Brands (/{id}_{slug}); 5 is inactive, so its URL must answer 404.
+CREATE TABLE ka_manufacturer (id_manufacturer INT PRIMARY KEY, name VARCHAR(64), active TINYINT);
+INSERT INTO ka_manufacturer VALUES (2, 'Kärcher', 1), (5, 'Ancienne Marque', 0);
+CREATE TABLE ka_manufacturer_lang (id_manufacturer INT, id_lang INT, description TEXT, short_description TEXT, meta_title VARCHAR(255), meta_description VARCHAR(512));
+INSERT INTO ka_manufacturer_lang VALUES
+  (2, 1, '<p>Kärcher, leader mondial des solutions de nettoyage.</p>', '<p>Le spécialiste du nettoyage.</p>', 'Produits Kärcher en Tunisie', 'Toute la gamme Kärcher : nettoyeurs haute pression, aspirateurs, balayeuses.'),
+  (5, 1, '', '', '', '');
+
+-- Fixed pages' meta tags and friendly URLs (Préférences > Trafic & SEO).
+CREATE TABLE ka_meta (id_meta INT PRIMARY KEY, page VARCHAR(64), configurable TINYINT);
+INSERT INTO ka_meta VALUES (1, 'pagenotfound', 1), (2, 'best-sales', 1), (3, 'contact', 1), (4, 'index', 1),
+  (5, 'manufacturer', 1), (6, 'new-products', 1), (8, 'prices-drop', 1), (10, 'search', 1), (12, 'stores', 1),
+  (13, 'supplier', 1), (20, 'cart', 1), (30, 'module-ps_emailsubscription-verification', 1);
+CREATE TABLE ka_meta_lang (id_meta INT, id_shop INT, id_lang INT, title VARCHAR(128), description VARCHAR(255), keywords VARCHAR(255), url_rewrite VARCHAR(254));
+INSERT INTO ka_meta_lang VALUES
+  (1, 1, 1, 'Erreur 404', 'Page introuvable', '', 'page-introuvable'),
+  (2, 1, 1, 'Meilleures ventes', 'Les produits Kärcher les plus vendus en Tunisie', '', 'meilleures-ventes'),
+  (3, 1, 1, 'Contactez-nous', 'Contactez Kärcher Center Tunisie', '', 'nous-contacter'),
+  (4, 1, 1, 'Kärcher Tunisie - Nettoyeurs haute pression et aspirateurs', 'Distributeur officiel Kärcher en Tunisie : nettoyeurs haute pression, aspirateurs, balayeuses, livraison partout en Tunisie.', 'karcher, tunisie', ''),
+  (5, 1, 1, 'Marques', 'Toutes nos marques', '', 'brands'),
+  (6, 1, 1, 'Nouveaux produits', 'Les nouveautés Kärcher', '', 'nouveaux-produits'),
+  (8, 1, 1, 'Promotions', 'Les promotions Kärcher du moment', '', 'promotions'),
+  (10, 1, 1, 'Recherche', '', '', 'recherche'),
+  (12, 1, 1, 'Nos magasins', 'Nos points de vente en Tunisie', '', 'magasins'),
+  (13, 1, 1, 'Fournisseurs', '', '', 'fournisseur'),
+  (20, 1, 1, 'Panier', '', '', 'panier'),
+  (30, 1, 1, '', '', '', 'verification-email');
 
 CREATE TABLE ka_customer (id_customer INT PRIMARY KEY, id_shop INT, firstname VARCHAR(255), lastname VARCHAR(255), email VARCHAR(255), passwd VARCHAR(255), active TINYINT, deleted TINYINT, is_guest TINYINT, newsletter TINYINT, date_add DATETIME);
 INSERT INTO ka_customer VALUES

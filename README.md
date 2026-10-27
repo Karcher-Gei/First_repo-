@@ -64,6 +64,8 @@ field, run `pnpm --filter @karcher/server migration:generate <name>`, review the
 | ------------------------------------------------ | ------------------------ | ------------------------------------------------------------ |
 | `/home-garden/867-aspirateur-laveur-fcv-3.html`  | `/p/867`                 | Vendure product `customFields.legacyId`                      |
 | `/12-home-garden`                                | `/c/12`                  | Vendure collection `customFields.legacyId`                   |
+| `/2_karcher` (brand)                             | `/b/2`                   | "marque" facet value `customFields.legacyManufacturerId`     |
+| `/3__fournisseur`, `/fournisseur` (supplier)     | 301 to `/brands`         | no supplier pages                                            |
 | `/content/62-devenir-revendeur`                  | real route               | Payload page `legacyId`                                      |
 | `/2292-home_default/aspirateur-laveur-fcv-3.jpg` | `/img/2292/home_default` | Vendure asset `customFields.legacyImageId`, 301 to the asset |
 | `/promotions`, `/nous-contacter`, ...            | `/s/{page}`              | fixed list in `packages/seo`                                 |
@@ -108,7 +110,7 @@ mysql prestashop_copy < dump.sql                   # the phpMyAdmin export, into
 cp tools/migration/.env.example tools/migration/.env # database, image source, Vendure credentials
 pnpm --filter @karcher/migration inventory         # every PrestaShop URL -> out/url-inventory.csv
 pnpm --filter @karcher/migration import:shop       # catalog, customers, CMS export (see out/import-report.txt)
-pnpm --filter @karcher/storefront import:cms       # CMS pages into Payload
+pnpm --filter @karcher/storefront import:cms       # CMS pages and fixed pages' meta tags into Payload
 pnpm --filter @karcher/migration check:urls        # every URL of the inventory against the storefront
 ```
 
@@ -120,15 +122,18 @@ The Vendure server must be running, on a database prepared with `migrate` and `s
 | Prices excluding VAT, tax rules     | Prices including VAT in millimes, one tax category per Tunisian rate (`TVA 7%`...)  |
 | Combinations (`Version`, ...)       | Option groups and variants, each with its SKU, price and stock                      |
 | Features                            | Facets: category filters and product specifications                                 |
-| Images (`img/p`)                    | Assets with `legacyImageId`, cover first; from a folder copy or the live site       |
+| Images (`img/p`), legends           | Assets with `legacyImageId` and `alt`, cover first; folder copy or the live site    |
+| Manufacturers (active)              | Values of the "marque" facet, with description and meta tags: brand pages           |
 | Categories (active, level 2+)       | Collections with the same tree, listing the products assigned in PrestaShop         |
 | Customers (registered, not deleted) | Customers with their PrestaShop password; addresses in Tunisia with the governorate |
 | CMS pages (active)                  | Payload pages with `legacyId`, HTML converted to rich text                          |
+| Trafic & SEO (`meta`, `meta_lang`)  | Payload: homepage meta tags and the "Pages fixes (SEO)" global                      |
 
 Passwords: PrestaShop 1.7+ bcrypt hashes (`$2y$`) are stored as `$2b$`, so customers sign in as before. PrestaShop 1.6
 MD5 hashes cannot be converted; those customers, and accounts inactive in PrestaShop, are listed in
 `out/password-reset.csv` and sign in after "Mot de passe oublié". Not migrated: order history, specific prices
-(promotions), manufacturers, carriers, customer groups and newsletter consent.
+(promotions), suppliers, carriers, customer groups, newsletter consent and meta keywords (ignored by search
+engines). A fixed page whose friendly URL differs from `STATIC_PAGES` in `packages/seo` is reported in the import report.
 
 To try it without the real shop: `mysql prestashop < tools/migration/test/fixture.sql` (a small PrestaShop database
 with combinations, two VAT rates, inactive entries and both kinds of password hashes) and

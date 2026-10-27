@@ -6,6 +6,7 @@ import type {
   PsCategory,
   PsCombinationAttribute,
   PsImage,
+  PsManufacturer,
   PsProduct,
 } from '../prestashop';
 import { codeOf, imageRelativePath, orNull, priceWithTaxMillimes, validEan } from '../util';
@@ -59,6 +60,7 @@ export async function importCatalog(
 
   const features = (await ps.productFeatures()).filter((f) => importedIds.has(f.id_product));
   const facetValueIds = await ensureFacets(admin, features, report);
+  const brandIds = await importBrands(admin, await ps.manufacturers(), report);
 
   const images = (await ps.images()).filter((i) => importedIds.has(i.id_product));
   const assetIds = await importImages(admin, images, options.images, report);
@@ -88,10 +90,13 @@ export async function importCatalog(
       enabled: product.active === 1,
       featuredAssetId: cover?.assetId ?? null,
       assetIds: productImages.map((entry) => entry.assetId),
-      facetValueIds: (featuresByProduct.get(product.id_product) ?? []).flatMap((f) => {
-        const id = facetValueIds.get(f.id_feature_value);
-        return id ? [id] : [];
-      }),
+      facetValueIds: [
+        ...(featuresByProduct.get(product.id_product) ?? []).flatMap((f) => {
+          const id = facetValueIds.get(f.id_feature_value);
+          return id ? [id] : [];
+        }),
+        ...(brandIds.has(product.id_manufacturer) ? [brandIds.get(product.id_manufacturer)!] : []),
+      ],
       customFields: {
         legacyId: product.id_product,
         ean13: validEan(product.ean13),
@@ -250,26 +255,127 @@ async function ensureFacets(
   return result;
 }
 
-/** Uploads each original image once; assets keep the PrestaShop image id for the old image URLs. */
+const BRAND_FACET = 'marque';
+
+/**
+ * Active PrestaShop manufacturers become values of the "marque" facet, keeping their id for the
+ * brand pages (/{id}_{slug}) and their description and meta tags. Inactive ones are left out, so
+ * their URLs answer 404 as on PrestaShop.
+ */
+async function importBrands(
+  admin: VendureAdmin,
+  manufacturers: PsManufacturer[],
+  report: Report,
+): Promise<Map<number, string>> {
+  type Value = { id: string; customFields: { legacyManufacturerId: number | null } | null };
+  type Facet = { id: string; values: Value[] };
+  const active = manufacturers.filter((m) => m.active === 1);
+  if (manufacturers.length > active.length) {
+    report.count('inactive brands left out', manufacturers.length - active.length);
+  }
+  const result = new Map<number, string>();
+  if (!active.length) {
+    return result;
+  }
+
+  const fields = `id values { id customFields { legacyManufacturerId } }`;
+  const { facets } = await admin.gql<{ facets: { items: Facet[] } }>(
+    `query ($code: String!) { facets(options: { filter: { code: { eq: $code } } }) { items { ${fields} } } }`,
+    { code: BRAND_FACET },
+  );
+  let facet = facets.items[0];
+  if (!facet) {
+    ({ createFacet: facet } = await admin.gql<{ createFacet: Facet }>(
+      `mutation ($input: CreateFacetInput!) { createFacet(input: $input) { ${fields} } }`,
+      {
+        input: {
+          code: BRAND_FACET,
+          isPrivate: false,
+          translations: [{ languageCode: 'fr', name: 'Marque' }],
+        },
+      },
+    ));
+    report.count('facets created');
+  }
+
+  for (const brand of active) {
+    const translation = {
+      languageCode: 'fr',
+      name: brand.name,
+      customFields: {
+        description: orNull(brand.description),
+        metaTitle: orNull(brand.meta_title),
+        metaDescription: orNull(brand.meta_description),
+      },
+    };
+    const found = facet.values.find(
+      (v) => v.customFields?.legacyManufacturerId === brand.id_manufacturer,
+    );
+    if (found) {
+      await admin.gql(
+        `mutation ($input: [UpdateFacetValueInput!]!) { updateFacetValues(input: $input) { id } }`,
+        { input: [{ id: found.id, translations: [translation] }] },
+      );
+      result.set(brand.id_manufacturer, found.id);
+      report.count('brands updated');
+      continue;
+    }
+    const { createFacetValues } = await admin.gql<{ createFacetValues: { id: string }[] }>(
+      `mutation ($input: [CreateFacetValueInput!]!) { createFacetValues(input: $input) { id } }`,
+      {
+        input: [
+          {
+            facetId: facet.id,
+            code: `${codeOf(brand.name)}-${brand.id_manufacturer}`,
+            customFields: { legacyManufacturerId: brand.id_manufacturer },
+            translations: [translation],
+          },
+        ],
+      },
+    );
+    result.set(brand.id_manufacturer, createFacetValues[0]!.id);
+    report.count('brands created');
+  }
+  return result;
+}
+
+/**
+ * Uploads each original image once; assets keep the PrestaShop image id for the old image URLs
+ * and its legend as alt text (kept in step on every run).
+ */
 async function importImages(
   admin: VendureAdmin,
   images: PsImage[],
   source: ImageSource,
   report: Report,
 ): Promise<Map<number, string>> {
-  type Asset = { id: string; customFields: { legacyImageId: number | null } | null };
+  type Asset = {
+    id: string;
+    customFields: { legacyImageId: number | null; alt: string | null } | null;
+  };
   const existing = await admin.all<Asset>(
-    `query ($skip: Int, $take: Int) { assets(options: { skip: $skip, take: $take }) { totalItems items { id customFields { legacyImageId } } } }`,
+    `query ($skip: Int, $take: Int) { assets(options: { skip: $skip, take: $take }) { totalItems items { id customFields { legacyImageId alt } } } }`,
     (data: { assets: { items: Asset[]; totalItems: number } }) => data.assets,
   );
   const result = new Map<number, string>();
+  const altOf = new Map<string, string | null>();
   for (const asset of existing) {
     if (asset.customFields?.legacyImageId != null) {
       result.set(asset.customFields.legacyImageId, asset.id);
+      altOf.set(asset.id, asset.customFields.alt);
     }
   }
   for (const image of images) {
-    if (result.has(image.id_image)) {
+    const alt = orNull(image.legend);
+    const assetId = result.get(image.id_image);
+    if (assetId) {
+      if ((altOf.get(assetId) ?? null) !== alt) {
+        await admin.gql(
+          `mutation ($input: UpdateAssetInput!) { updateAsset(input: $input) { id } }`,
+          { input: { id: assetId, customFields: { alt } } },
+        );
+        report.count('image alt texts updated');
+      }
       report.count('images already imported');
       continue;
     }
@@ -281,7 +387,10 @@ async function importImages(
     try {
       result.set(
         image.id_image,
-        await admin.uploadAsset(file, `${image.product_slug}.jpg`, image.id_image),
+        await admin.uploadAsset(file, `${image.product_slug}.jpg`, {
+          legacyImageId: image.id_image,
+          alt,
+        }),
       );
       report.count('images uploaded');
     } catch (error) {

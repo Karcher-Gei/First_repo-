@@ -47,6 +47,8 @@ export interface PsProduct {
   price: string;
   active: number;
   id_category_default: number;
+  /** 0 when the product has no brand. */
+  id_manufacturer: number;
   category_slug: string;
   name: string;
   link_rewrite: string;
@@ -106,6 +108,26 @@ export interface PsImage {
   position: number;
   cover: number | null;
   product_slug: string;
+  /** Alt text, often empty. */
+  legend: string | null;
+}
+
+/** A brand, at /{id}_{slug}. */
+export interface PsManufacturer {
+  id_manufacturer: number;
+  name: string;
+  active: number;
+  description: string | null;
+  meta_title: string | null;
+  meta_description: string | null;
+}
+
+/** Meta tags and friendly URL of a fixed page (Préférences > Trafic & SEO); page "index" is the homepage. */
+export interface PsPageMeta {
+  page: string;
+  title: string | null;
+  description: string | null;
+  url_rewrite: string;
 }
 
 export interface PsCustomer {
@@ -168,7 +190,7 @@ export class PrestaShopReader {
   products(): Promise<PsProduct[]> {
     return this.rows<PsProduct>(
       `SELECT p.id_product, p.id_tax_rules_group, p.reference, p.ean13, p.price, p.active,
-              p.id_category_default, cl.link_rewrite AS category_slug, pl.name, pl.link_rewrite,
+              p.id_category_default, p.id_manufacturer, cl.link_rewrite AS category_slug, pl.name, pl.link_rewrite,
               pl.description, pl.meta_title, pl.meta_description
        FROM ${this.t('product')} p
        JOIN ${this.t('product_lang')} pl
@@ -248,11 +270,33 @@ export class PrestaShopReader {
 
   images(): Promise<PsImage[]> {
     return this.rows<PsImage>(
-      `SELECT i.id_image, i.id_product, i.position, i.cover, pl.link_rewrite AS product_slug
+      `SELECT i.id_image, i.id_product, i.position, i.cover, pl.link_rewrite AS product_slug, il.legend
        FROM ${this.t('image')} i
        JOIN ${this.t('product_lang')} pl
          ON pl.id_product = i.id_product AND pl.id_lang = ? AND pl.id_shop = ?
+       LEFT JOIN ${this.t('image_lang')} il ON il.id_image = i.id_image AND il.id_lang = ?
        ORDER BY i.id_product, i.position`,
+      [this.cfg.langId, this.cfg.shopId, this.cfg.langId],
+    );
+  }
+
+  manufacturers(): Promise<PsManufacturer[]> {
+    return this.rows<PsManufacturer>(
+      `SELECT m.id_manufacturer, m.name, m.active, ml.description, ml.meta_title, ml.meta_description
+       FROM ${this.t('manufacturer')} m
+       LEFT JOIN ${this.t('manufacturer_lang')} ml
+         ON ml.id_manufacturer = m.id_manufacturer AND ml.id_lang = ?
+       ORDER BY m.id_manufacturer`,
+      [this.cfg.langId],
+    );
+  }
+
+  pageMetas(): Promise<PsPageMeta[]> {
+    return this.rows<PsPageMeta>(
+      `SELECT m.page, ml.title, ml.description, ml.url_rewrite
+       FROM ${this.t('meta')} m
+       JOIN ${this.t('meta_lang')} ml ON ml.id_meta = m.id_meta AND ml.id_lang = ? AND ml.id_shop = ?
+       ORDER BY m.id_meta`,
       [this.cfg.langId, this.cfg.shopId],
     );
   }

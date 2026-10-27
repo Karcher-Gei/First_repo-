@@ -9,13 +9,21 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { categoryPath, cmsPath, imagePath, productPath, STATIC_PAGES } from '@karcher/seo';
+import {
+  brandPath,
+  categoryPath,
+  cmsPath,
+  imagePath,
+  productPath,
+  slugify,
+  STATIC_PAGES,
+} from '@karcher/seo';
 
 import { configFromEnv, PrestaShopReader } from './prestashop';
 import { validEan } from './util';
 
 interface InventoryRow {
-  type: 'static' | 'category' | 'product' | 'cms' | 'image';
+  type: 'static' | 'category' | 'product' | 'brand' | 'cms' | 'image';
   id: number | '';
   path: string;
   active: boolean;
@@ -26,9 +34,10 @@ const IMAGE_SIZES = ['home_default', 'large_default'];
 async function main(): Promise<void> {
   const reader = PrestaShopReader.create(configFromEnv());
   try {
-    const [categories, products, cmsPages, images] = await Promise.all([
+    const [categories, products, manufacturers, cmsPages, images] = await Promise.all([
       reader.categories(),
       reader.products(),
+      reader.manufacturers(),
       reader.cmsPages(),
       reader.images(),
     ]);
@@ -57,6 +66,13 @@ async function main(): Promise<void> {
           ean13: validEan(p.ean13),
         }),
         active: p.active === 1,
+      })),
+      ...manufacturers.map((m) => ({
+        type: 'brand' as const,
+        id: m.id_manufacturer,
+        // PrestaShop builds the brand slug from its name.
+        path: brandPath({ id: m.id_manufacturer, slug: slugify(m.name) }),
+        active: m.active === 1,
       })),
       ...cmsPages.map((c) => ({
         type: 'cms' as const,
@@ -88,7 +104,8 @@ async function main(): Promise<void> {
       rows.filter((r) => r.type === type && r.active).length;
     console.log(`Wrote ${rows.length} URLs to ${path.relative(process.cwd(), outFile)}`);
     console.log(
-      `Active: ${count('product')} products, ${count('category')} categories, ${count('cms')} CMS pages, ` +
+      `Active: ${count('product')} products, ${count('category')} categories, ${count('brand')} brands, ` +
+        `${count('cms')} CMS pages, ` +
         `${count('image')} image URLs, ${count('static')} fixed pages`,
     );
   } finally {

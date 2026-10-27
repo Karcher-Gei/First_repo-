@@ -26,15 +26,17 @@ export interface CategoryListing {
   pageCount: number;
 }
 
-/** What a listing shows: a category's products, or the results of a search. */
-export type ListingScope = { collectionId: string } | { term: string };
+/** What a listing shows: a category's products, a brand's (a facet value) or search results. */
+export type ListingScope = { collectionId: string } | { term: string } | { facetValueId: string };
 
 export async function loadListing(
   scope: ListingScope,
   params: CategoryParams,
 ): Promise<CategoryListing> {
+  const { facetValueId, ...scopeInput } = { facetValueId: undefined, ...scope };
+  const scopeFilters = facetValueId ? [{ and: facetValueId }] : [];
   const { search: all } = await shopQuery(LISTING_FACETS, {
-    input: { ...scope, groupByProduct: true, take: 0 },
+    input: { ...scopeInput, facetValueFilters: scopeFilters, groupByProduct: true, take: 0 },
   });
   const facets = new Map<string, FacetGroup>();
   for (const { count, facetValue } of all.facetValues) {
@@ -55,9 +57,9 @@ export async function loadListing(
 
   const { search } = await shopQuery(CATEGORY_PAGE, {
     input: {
-      ...scope,
+      ...scopeInput,
       groupByProduct: true,
-      facetValueFilters,
+      facetValueFilters: [...scopeFilters, ...facetValueFilters],
       inStock: params.inStock || undefined,
       sort: params.order ? SORTS[params.order].sort : undefined,
       skip: (params.page - 1) * PAGE_SIZE,

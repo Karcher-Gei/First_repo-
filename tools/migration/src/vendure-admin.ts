@@ -50,22 +50,22 @@ export class VendureAdmin {
     });
   }
 
-  /** Uploads one image as an Asset, carrying its PrestaShop image id for product images. */
+  /** Uploads one image as an Asset; product images carry their PrestaShop image id and alt text. */
   async uploadAsset(
     file: Uint8Array,
     fileName: string,
-    legacyImageId: number | null = null,
+    customFields: { legacyImageId?: number; alt?: string | null } = {},
   ): Promise<string> {
     const form = new FormData();
     form.append(
       'operations',
       JSON.stringify({
-        query: `mutation ($file: Upload!, $legacyImageId: Int) {
-          createAssets(input: [{ file: $file, customFields: { legacyImageId: $legacyImageId } }]) {
+        query: `mutation ($file: Upload!, $customFields: CreateAssetCustomFieldsInput) {
+          createAssets(input: [{ file: $file, customFields: $customFields }]) {
             __typename ... on Asset { id } ... on ErrorResult { message }
           }
         }`,
-        variables: { file: null, legacyImageId },
+        variables: { file: null, customFields },
       }),
     );
     form.append('map', JSON.stringify({ 0: ['variables.file'] }));

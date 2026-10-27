@@ -2,7 +2,8 @@ import { CustomFieldConfig, LanguageCode } from '@vendure/core';
 
 /**
  * PrestaShop identifiers kept on migrated entities, so every old URL can be resolved by ID
- * exactly as PrestaShop does: /{category}/{id}-{slug}-{ean13}.html, /{id}-{slug}, /{imageId}-{size}/{slug}.jpg
+ * exactly as PrestaShop does: /{category}/{id}-{slug}-{ean13}.html, /{id}-{slug}, /{imageId}-{size}/{slug}.jpg,
+ * and brands (values of the "marque" facet) at /{id}_{slug}
  */
 declare module '@vendure/core/dist/entity/custom-entity-fields' {
     interface CustomProductFields {
@@ -23,6 +24,15 @@ declare module '@vendure/core/dist/entity/custom-entity-fields' {
     }
     interface CustomAssetFields {
         legacyImageId: number | null;
+        alt: string | null;
+    }
+    interface CustomFacetValueFields {
+        legacyManufacturerId: number | null;
+    }
+    interface CustomFacetValueFieldsTranslation {
+        description: string | null;
+        metaTitle: string | null;
+        metaDescription: string | null;
     }
 }
 
@@ -116,4 +126,45 @@ export const assetCustomFields: CustomFieldConfig[] = [
         public: true,
         label: [{ languageCode: LanguageCode.en, value: 'PrestaShop image ID' }],
     },
+    {
+        name: 'alt',
+        type: 'string',
+        nullable: true,
+        public: true,
+        label: [
+            { languageCode: LanguageCode.fr, value: 'Texte alternatif' },
+            { languageCode: LanguageCode.en, value: 'Alt text' },
+        ],
+        description: [
+            {
+                languageCode: LanguageCode.en,
+                value: 'Describes the image for search engines and screen readers (PrestaShop legend). Empty: the product name.',
+            },
+        ],
+    },
+];
+
+/** Brands are values of the "marque" facet; PrestaShop manufacturers keep their ID for /{id}_{slug}. */
+export const facetValueCustomFields: CustomFieldConfig[] = [
+    {
+        name: 'legacyManufacturerId',
+        type: 'int',
+        nullable: true,
+        public: true,
+        label: [
+            { languageCode: LanguageCode.fr, value: 'ID marque PrestaShop' },
+            { languageCode: LanguageCode.en, value: 'PrestaShop manufacturer ID' },
+        ],
+        description: [{ languageCode: LanguageCode.en, value: 'Used in the brand URL; never change it.' }],
+        ui: { tab: 'SEO' },
+    },
+    {
+        name: 'description',
+        type: 'localeText',
+        nullable: true,
+        public: true,
+        label: [{ languageCode: LanguageCode.en, value: 'Description' }],
+        ui: { tab: 'SEO' },
+    },
+    ...seoCustomFields,
 ];

@@ -1,7 +1,12 @@
 import { PluginCommonModule, VendurePlugin } from '@vendure/core';
 import gql from 'graphql-tag';
 
-import { assetCustomFields, collectionCustomFields, productCustomFields } from './custom-fields';
+import {
+    assetCustomFields,
+    collectionCustomFields,
+    facetValueCustomFields,
+    productCustomFields,
+} from './custom-fields';
 import { LegacyRedirect } from './legacy-redirect.entity';
 import { LegacyUrlsAdminResolver, LegacyUrlsShopResolver } from './legacy-urls.resolvers';
 import { LegacyUrlsService } from './legacy-urls.service';
@@ -57,7 +62,7 @@ const adminSchema = gql`
 `;
 
 /**
- * Keeps karcher-gei.tn's PrestaShop URLs working: legacy IDs on products, collections and
+ * Keeps karcher-gei.tn's PrestaShop URLs working: legacy IDs on products, collections, brands and
  * assets, plus a redirects table for URLs that must point somewhere new.
  */
 @VendurePlugin({
@@ -70,6 +75,7 @@ const adminSchema = gql`
         config.customFields.Product.push(...productCustomFields);
         config.customFields.Collection.push(...collectionCustomFields);
         config.customFields.Asset.push(...assetCustomFields);
+        config.customFields.FacetValue.push(...facetValueCustomFields);
         return config;
     },
     compatibility: '^3.0.0',

@@ -4,8 +4,17 @@ import { cn } from '@karcher/ui';
 import Image from 'next/image';
 import { useState } from 'react';
 
-/** Main product image with thumbnails to switch between the product's images. */
-export function ProductGallery({ images, alt }: { images: { preview: string }[]; alt: string }) {
+/**
+ * Main product image with thumbnails to switch between the product's images. Each image is
+ * described by its own alt text (PrestaShop's legend), or else by `alt`, the product name.
+ */
+export function ProductGallery({
+  images,
+  alt,
+}: {
+  images: { preview: string; alt?: string | null }[];
+  alt: string;
+}) {
   const [current, setCurrent] = useState(0);
   const main = images[current];
 
@@ -15,7 +24,7 @@ export function ProductGallery({ images, alt }: { images: { preview: string }[];
         {main ? (
           <Image
             src={`${main.preview}?preset=large`}
-            alt={alt}
+            alt={main.alt || alt}
             fill
             priority
             sizes="(min-width: 768px) 50vw, 100vw"

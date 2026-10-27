@@ -10,6 +10,7 @@ import { Pages } from './cms/collections/Pages';
 import { Posts } from './cms/collections/Posts';
 import { Stores } from './cms/collections/Stores';
 import { Users } from './cms/collections/Users';
+import { FixedPages } from './cms/globals/FixedPages';
 import { Homepage } from './cms/globals/Homepage';
 import { Navigation } from './cms/globals/Navigation';
 
@@ -34,7 +35,7 @@ export default buildConfig({
     admin: '/admin-cms',
   },
   collections: [Users, Media, Pages, Posts, Stores],
-  globals: [Homepage, Navigation],
+  globals: [Homepage, Navigation, FixedPages],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

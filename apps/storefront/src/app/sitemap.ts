@@ -1,6 +1,7 @@
 import { categoryPath, cmsPath, STATIC_PAGES } from '@karcher/seo';
 import type { MetadataRoute } from 'next';
 
+import { getBrands } from '@/lib/brands';
 import { getCms } from '@/lib/cms';
 import { productHref } from '@/lib/paths';
 import { SITEMAP_COLLECTIONS, SITEMAP_PRODUCTS } from '@/lib/queries';
@@ -45,6 +46,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     if (products.items.length < take) {
       break;
     }
+  }
+
+  for (const brand of await getBrands()) {
+    entries.push({ url: absoluteUrl(brand.href) });
   }
 
   const cms = await getCms();

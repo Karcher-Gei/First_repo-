@@ -1,3 +1,5 @@
+import { STATIC_PAGES, type StaticPageKey } from '@karcher/seo';
+
 import type { PrestaShopReader } from '../prestashop';
 import { orNull } from '../util';
 import type { Report } from './report';
@@ -35,4 +37,44 @@ export async function exportCmsPages(
     metaDescription: orNull(page.meta_description),
     html: page.content ?? '',
   }));
+}
+
+/** Meta tags of the homepage and the fixed pages, for Payload (out/page-meta.json). */
+export interface PageMetaExport {
+  homepage: { title: string | null; description: string | null };
+  pages: { page: StaticPageKey; title: string | null; description: string | null }[];
+}
+
+/** PrestaShop's name for a fixed page, when it differs from the storefront's. */
+const PS_PAGE: Partial<Record<StaticPageKey, string>> = { brands: 'manufacturer' };
+
+/**
+ * Meta titles and descriptions of the homepage and the fixed pages (Préférences > Trafic & SEO).
+ * Their friendly URLs are fixed in @karcher/seo; one that differs on the shop is reported, since
+ * its old URL would stop working.
+ */
+export async function exportPageMetas(
+  ps: PrestaShopReader,
+  report: Report,
+): Promise<PageMetaExport> {
+  const metas = new Map((await ps.pageMetas()).map((m) => [m.page, m]));
+  const home = metas.get('index');
+  const pages: PageMetaExport['pages'] = [];
+  for (const [path, page] of Object.entries(STATIC_PAGES)) {
+    const meta = metas.get(PS_PAGE[page] ?? page);
+    if (!meta) {
+      continue;
+    }
+    if (`/${meta.url_rewrite}` !== path) {
+      report.warn(
+        `Fixed page "${meta.page}" is at /${meta.url_rewrite} on PrestaShop but ${path} here: add it to STATIC_PAGES in packages/seo`,
+      );
+    }
+    pages.push({ page, title: orNull(meta.title), description: orNull(meta.description) });
+  }
+  report.count('fixed page meta tags exported', pages.length + (home ? 1 : 0));
+  return {
+    homepage: { title: orNull(home?.title), description: orNull(home?.description) },
+    pages,
+  };
 }

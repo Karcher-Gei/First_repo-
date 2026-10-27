@@ -96,10 +96,12 @@ export interface Config {
   globals: {
     homepage: Homepage;
     navigation: Navigation;
+    'fixed-pages': FixedPage;
   };
   globalsSelect: {
     homepage: HomepageSelect<false> | HomepageSelect<true>;
     navigation: NavigationSelect<false> | NavigationSelect<true>;
+    'fixed-pages': FixedPagesSelect<false> | FixedPagesSelect<true>;
   };
   locale: null;
   widgets: {
@@ -670,6 +672,32 @@ export interface Navigation {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "fixed-pages".
+ */
+export interface FixedPage {
+  id: number;
+  /**
+   * A page without an entry here uses its default title.
+   */
+  pages?:
+    | {
+        page: 'prices-drop' | 'best-sales' | 'new-products' | 'contact' | 'stores' | 'brands' | 'discount';
+        /**
+         * Max ~60 characters
+         */
+        title?: string | null;
+        /**
+         * Max ~155 characters
+         */
+        description?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "homepage_select".
  */
 export interface HomepageSelect<T extends boolean = true> {
@@ -760,6 +788,23 @@ export interface NavigationSelect<T extends boolean = true> {
               url?: T;
               id?: T;
             };
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "fixed-pages_select".
+ */
+export interface FixedPagesSelect<T extends boolean = true> {
+  pages?:
+    | T
+    | {
+        page?: T;
+        title?: T;
+        description?: T;
         id?: T;
       };
   updatedAt?: T;

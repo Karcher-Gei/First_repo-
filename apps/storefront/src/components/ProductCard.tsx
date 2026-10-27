@@ -26,7 +26,7 @@ export function ProductCard({
         {product.featuredAsset ? (
           <Image
             src={`${product.featuredAsset.preview}?preset=medium`}
-            alt=""
+            alt={product.featuredAsset.customFields?.alt || product.name}
             fill
             sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
             className="object-contain p-5 mix-blend-multiply transition-transform duration-300 group-hover:scale-105"

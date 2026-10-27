@@ -6,17 +6,9 @@ import { permanentRedirect } from 'next/navigation';
 
 import { Container, SectionHeading } from '@/components/brand';
 import { Breadcrumbs, type Crumb } from '@/components/Breadcrumbs';
-import { CategoryFilters } from '@/components/CategoryFilters';
-import { Pagination } from '@/components/Pagination';
-import { ProductCard } from '@/components/ProductCard';
+import { ProductListing } from '@/components/ProductListing';
 import { loadListing } from '@/lib/catalog';
-import {
-  categoryQuery,
-  isFiltered,
-  parseCategoryParams,
-  SORTS,
-  type SortKey,
-} from '@/lib/category-params';
+import { categoryQuery, isFiltered, parseCategoryParams } from '@/lib/category-params';
 import { categoryHref } from '@/lib/paths';
 import { COLLECTION_BY_LEGACY_ID } from '@/lib/queries';
 import { redirectOrNotFound } from '@/lib/redirects';
@@ -96,7 +88,6 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const path = canonical ?? query.from ?? '/';
 
   const listing = await loadListing({ collectionId: collection.id }, categoryParams);
-  const sorts = (Object.keys(SORTS) as SortKey[]).map((key) => ({ key, label: SORTS[key].label }));
   const crumbs = crumbsOf(collection);
   const subcategories = [...(collection.children ?? [])]
     .sort((a, b) => a.position - b.position)
@@ -109,39 +100,6 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   );
 
   const intro = excerpt(plainText(collection.description), 240);
-  const facetValueNames = new Map(
-    listing.facets.flatMap((facet) => facet.values.map((v) => [v.id, v.name] as const)),
-  );
-  // Each chip links to the listing without that one filter.
-  const chips = [
-    ...categoryParams.facetValueIds.map((id) => ({
-      label: facetValueNames.get(id) ?? id,
-      href:
-        path +
-        categoryQuery({
-          ...categoryParams,
-          page: 1,
-          facetValueIds: categoryParams.facetValueIds.filter((other) => other !== id),
-        }),
-    })),
-    ...(categoryParams.inStock
-      ? [
-          {
-            label: 'En stock',
-            href: path + categoryQuery({ ...categoryParams, page: 1, inStock: false }),
-          },
-        ]
-      : []),
-    ...(categoryParams.order
-      ? [
-          {
-            label: SORTS[categoryParams.order].label,
-            href: path + categoryQuery({ ...categoryParams, page: 1, order: null }),
-          },
-        ]
-      : []),
-  ];
-
   return (
     <div className="-mt-6 space-y-10 md:-mt-8">
       <script
@@ -221,59 +179,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         </ul>
       ) : null}
 
-      <div className="grid gap-6 md:grid-cols-[15rem_1fr] md:gap-10">
-        <aside aria-label="Filtres" className="md:sticky md:top-44 md:self-start">
-          <CategoryFilters
-            action={path}
-            facets={listing.facets}
-            params={categoryParams}
-            sorts={sorts}
-          />
-        </aside>
-        <div className="space-y-6">
-          {chips.length > 0 ? (
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm text-ink-muted">Filtres actifs :</span>
-              {chips.map((chip) => (
-                <Link
-                  key={chip.label}
-                  href={chip.href}
-                  className="inline-flex items-center gap-2 rounded-full bg-ink px-3 py-1 text-sm text-white hover:bg-anthracite"
-                  aria-label={`Retirer le filtre ${chip.label}`}
-                >
-                  {chip.label}
-                  <span aria-hidden="true">×</span>
-                </Link>
-              ))}
-              <Link href={path} className="text-sm font-semibold underline">
-                Tout effacer
-              </Link>
-            </div>
-          ) : null}
-          {listing.products.length === 0 ? (
-            <div className="rounded-card bg-stage p-10 text-center">
-              <p className="font-heading text-2xl font-bold uppercase">Aucun produit</p>
-              <p className="text-ink-muted">Aucun produit ne correspond à ces filtres.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
-              {listing.products.map(({ product, priceWithTax, from }) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  priceWithTax={priceWithTax}
-                  priceFrom={from}
-                />
-              ))}
-            </div>
-          )}
-          <Pagination
-            page={categoryParams.page}
-            pageCount={listing.pageCount}
-            hrefFor={(page) => path + categoryQuery({ ...categoryParams, page })}
-          />
-        </div>
-      </div>
+      <ProductListing listing={listing} params={categoryParams} path={path} />
 
       {/* The full description, when the introduction above had to be shortened. */}
       {collection.description && plainText(collection.description).length > intro.length ? (

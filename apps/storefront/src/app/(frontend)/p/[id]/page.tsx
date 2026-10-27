@@ -105,12 +105,13 @@ export default async function ProductPage({ params, searchParams }: Props) {
     ...(category ? [{ name: category.name, href: categoryHref(category) }] : []),
     { name: product.name, href },
   ];
-  const images =
+  const images = (
     product.assets.length > 0
       ? product.assets
       : product.featuredAsset
         ? [product.featuredAsset]
-        : [];
+        : []
+  ).map((asset) => ({ preview: asset.preview, alt: asset.customFields?.alt }));
   const specs = specifications(product);
   const related = await relatedProducts(product, category?.slug);
 

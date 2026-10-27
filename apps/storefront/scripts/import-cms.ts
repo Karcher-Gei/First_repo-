@@ -1,6 +1,7 @@
 /**
  * Loads the PrestaShop CMS pages exported by tools/migration (out/cms-pages.json) into Payload,
- * converting their HTML to rich text. Pages are matched on legacyId, so it can run again.
+ * converting their HTML to rich text, then the meta tags of the homepage and the fixed pages
+ * (out/page-meta.json). Pages are matched on legacyId, so it can run again.
  *
  *   pnpm --filter @karcher/migration import:shop --only=cms
  *   pnpm --filter @karcher/storefront import:cms [path/to/cms-pages.json]
@@ -13,6 +14,7 @@ import { convertHTMLToLexical, editorConfigFactory } from '@payloadcms/richtext-
 import { JSDOM } from 'jsdom';
 import { getPayload } from 'payload';
 
+import type { FixedPage } from '../src/payload-types';
 import config from '../src/payload.config';
 
 interface CmsPageExport {
@@ -24,8 +26,14 @@ interface CmsPageExport {
   html: string;
 }
 
+interface PageMetaExport {
+  homepage: { title: string | null; description: string | null };
+  pages: { page: string; title: string | null; description: string | null }[];
+}
+
 const here = path.dirname(fileURLToPath(import.meta.url));
 const file = process.argv[2] ?? path.join(here, '../../../tools/migration/out/cms-pages.json');
+const metaFile = path.join(path.dirname(file), 'page-meta.json');
 
 const payload = await getPayload({ config });
 const editorConfig = await editorConfigFactory.default({ config: payload.config });
@@ -58,4 +66,12 @@ for (const page of pages) {
 console.log(
   `CMS pages: ${created} created, ${updated} updated (from ${path.relative(process.cwd(), file)})`,
 );
+
+const metas = JSON.parse(await readFile(metaFile, 'utf8')) as PageMetaExport;
+await payload.updateGlobal({ slug: 'homepage', data: { meta: metas.homepage } });
+await payload.updateGlobal({
+  slug: 'fixed-pages',
+  data: { pages: metas.pages as NonNullable<FixedPage['pages']> },
+});
+console.log(`Meta tags: homepage and ${metas.pages.length} fixed pages`);
 process.exit(0);
