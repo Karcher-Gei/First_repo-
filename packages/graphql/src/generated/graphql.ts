@@ -4,6 +4,12 @@ type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 /** Internal type. DO NOT USE DIRECTLY. */
 export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
 import type { DocumentTypeDecoration } from '@graphql-typed-document-node/core';
+/** Operators for filtering on a Boolean field */
+export type BooleanOperators = {
+  eq?: boolean | null | undefined;
+  isNull?: boolean | null | undefined;
+};
+
 /**
  * Input used to create an Address.
  *
@@ -33,6 +39,20 @@ export type CreateCustomerInput = {
   lastName: string;
   phoneNumber?: string | null | undefined;
   title?: string | null | undefined;
+};
+
+/** Operators for filtering on a DateTime field */
+export type DateOperators = {
+  after?: string | null | undefined;
+  before?: string | null | undefined;
+  between?: DateRange | null | undefined;
+  eq?: string | null | undefined;
+  isNull?: boolean | null | undefined;
+};
+
+export type DateRange = {
+  end: string;
+  start: string;
 };
 
 export type ErrorCode =
@@ -82,6 +102,35 @@ export type FacetValueFilterInput = {
   or?: Array<string | number> | null | undefined;
 };
 
+/** Operators for filtering on an ID field */
+export type IdOperators = {
+  eq?: string | null | undefined;
+  in?: Array<string> | null | undefined;
+  isNull?: boolean | null | undefined;
+  notEq?: string | null | undefined;
+  notIn?: Array<string> | null | undefined;
+};
+
+export type LogicalOperator =
+  | 'AND'
+  | 'OR';
+
+/** Operators for filtering on a Int or Float field */
+export type NumberOperators = {
+  between?: NumberRange | null | undefined;
+  eq?: number | null | undefined;
+  gt?: number | null | undefined;
+  gte?: number | null | undefined;
+  isNull?: boolean | null | undefined;
+  lt?: number | null | undefined;
+  lte?: number | null | undefined;
+};
+
+export type NumberRange = {
+  end: number;
+  start: number;
+};
+
 /** Passed as input to the `addPaymentToOrder` mutation. */
 export type PaymentInput = {
   /**
@@ -92,6 +141,55 @@ export type PaymentInput = {
   metadata: Record<string, unknown>;
   /** This field should correspond to the `code` property of a PaymentMethod. */
   method: string;
+};
+
+export type ProductFilterParameter = {
+  _and?: Array<ProductFilterParameter> | null | undefined;
+  _or?: Array<ProductFilterParameter> | null | undefined;
+  addedAt?: DateOperators | null | undefined;
+  createdAt?: DateOperators | null | undefined;
+  description?: StringOperators | null | undefined;
+  ean13?: StringOperators | null | undefined;
+  enabled?: BooleanOperators | null | undefined;
+  id?: IdOperators | null | undefined;
+  languageCode?: StringOperators | null | undefined;
+  legacyId?: NumberOperators | null | undefined;
+  metaDescription?: StringOperators | null | undefined;
+  metaTitle?: StringOperators | null | undefined;
+  name?: StringOperators | null | undefined;
+  slug?: StringOperators | null | undefined;
+  unitsSold?: NumberOperators | null | undefined;
+  updatedAt?: DateOperators | null | undefined;
+  urlCategory?: StringOperators | null | undefined;
+};
+
+export type ProductListOptions = {
+  /** Allows the results to be filtered */
+  filter?: ProductFilterParameter | null | undefined;
+  /** Specifies whether multiple top-level "filter" fields should be combined with a logical AND or OR operation. Defaults to AND. */
+  filterOperator?: LogicalOperator | null | undefined;
+  /** Skips the first n results, for use in pagination */
+  skip?: number | null | undefined;
+  /** Specifies which properties to sort the results by */
+  sort?: ProductSortParameter | null | undefined;
+  /** Takes n results, for use in pagination */
+  take?: number | null | undefined;
+};
+
+export type ProductSortParameter = {
+  addedAt?: SortOrder | null | undefined;
+  createdAt?: SortOrder | null | undefined;
+  description?: SortOrder | null | undefined;
+  ean13?: SortOrder | null | undefined;
+  id?: SortOrder | null | undefined;
+  legacyId?: SortOrder | null | undefined;
+  metaDescription?: SortOrder | null | undefined;
+  metaTitle?: SortOrder | null | undefined;
+  name?: SortOrder | null | undefined;
+  slug?: SortOrder | null | undefined;
+  unitsSold?: SortOrder | null | undefined;
+  updatedAt?: SortOrder | null | undefined;
+  urlCategory?: SortOrder | null | undefined;
 };
 
 export type QuoteLineInput = {
@@ -150,6 +248,18 @@ export type SearchResultSortParameter = {
 export type SortOrder =
   | 'ASC'
   | 'DESC';
+
+/** Operators for filtering on a String field */
+export type StringOperators = {
+  contains?: string | null | undefined;
+  eq?: string | null | undefined;
+  in?: Array<string> | null | undefined;
+  isNull?: boolean | null | undefined;
+  notContains?: string | null | undefined;
+  notEq?: string | null | undefined;
+  notIn?: Array<string> | null | undefined;
+  regex?: string | null | undefined;
+};
 
 export type SubmitFormInput = {
   email: string;
@@ -326,12 +436,12 @@ export type DeleteAddressMutationVariables = Exact<{
 
 export type DeleteAddressMutation = { deleteCustomerAddress: { success: boolean } };
 
-export type CartOrderFragment = { id: string, code: string, state: string, active: boolean, totalQuantity: number, subTotalWithTax: number, shippingWithTax: number, totalWithTax: number, customer: { id: string, firstName: string, lastName: string, emailAddress: string, phoneNumber: string | null } | null, shippingAddress: { fullName: string | null, streetLine1: string | null, streetLine2: string | null, city: string | null, province: string | null, postalCode: string | null, phoneNumber: string | null } | null, shippingLines: Array<{ priceWithTax: number, shippingMethod: { id: string, name: string } }>, discounts: Array<{ description: string, amountWithTax: number }>, lines: Array<{ id: string, quantity: number, unitPriceWithTax: number, linePriceWithTax: number, featuredAsset: { preview: string } | null, productVariant: { id: string, name: string, sku: string, product: { id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null } } }> };
+export type CartOrderFragment = { id: string, code: string, state: string, active: boolean, totalQuantity: number, subTotalWithTax: number, shippingWithTax: number, totalWithTax: number, customer: { id: string, firstName: string, lastName: string, emailAddress: string, phoneNumber: string | null } | null, shippingAddress: { fullName: string | null, streetLine1: string | null, streetLine2: string | null, city: string | null, province: string | null, postalCode: string | null, phoneNumber: string | null } | null, shippingLines: Array<{ priceWithTax: number, shippingMethod: { id: string, name: string } }>, discounts: Array<{ description: string, amountWithTax: number }>, lines: Array<{ id: string, quantity: number, unitPriceWithTax: number, linePriceWithTax: number, featuredAsset: { preview: string } | null, productVariant: { id: string, name: string, sku: string, product: { id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null, variants: Array<{ priceWithTax: number, customFields: { regularPrice: number | null } | null }> } } }> };
 
 export type ActiveOrderQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ActiveOrderQuery = { activeOrder: { id: string, code: string, state: string, active: boolean, totalQuantity: number, subTotalWithTax: number, shippingWithTax: number, totalWithTax: number, customer: { id: string, firstName: string, lastName: string, emailAddress: string, phoneNumber: string | null } | null, shippingAddress: { fullName: string | null, streetLine1: string | null, streetLine2: string | null, city: string | null, province: string | null, postalCode: string | null, phoneNumber: string | null } | null, shippingLines: Array<{ priceWithTax: number, shippingMethod: { id: string, name: string } }>, discounts: Array<{ description: string, amountWithTax: number }>, lines: Array<{ id: string, quantity: number, unitPriceWithTax: number, linePriceWithTax: number, featuredAsset: { preview: string } | null, productVariant: { id: string, name: string, sku: string, product: { id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null } } }> } | null };
+export type ActiveOrderQuery = { activeOrder: { id: string, code: string, state: string, active: boolean, totalQuantity: number, subTotalWithTax: number, shippingWithTax: number, totalWithTax: number, customer: { id: string, firstName: string, lastName: string, emailAddress: string, phoneNumber: string | null } | null, shippingAddress: { fullName: string | null, streetLine1: string | null, streetLine2: string | null, city: string | null, province: string | null, postalCode: string | null, phoneNumber: string | null } | null, shippingLines: Array<{ priceWithTax: number, shippingMethod: { id: string, name: string } }>, discounts: Array<{ description: string, amountWithTax: number }>, lines: Array<{ id: string, quantity: number, unitPriceWithTax: number, linePriceWithTax: number, featuredAsset: { preview: string } | null, productVariant: { id: string, name: string, sku: string, product: { id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null, variants: Array<{ priceWithTax: number, customFields: { regularPrice: number | null } | null }> } } }> } | null };
 
 export type CartCountQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -392,7 +502,7 @@ export type TransitionOrderMutation = { transitionOrderToState:
 export type CheckoutOptionsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type CheckoutOptionsQuery = { activeOrder: { id: string, code: string, state: string, active: boolean, totalQuantity: number, subTotalWithTax: number, shippingWithTax: number, totalWithTax: number, customer: { id: string, firstName: string, lastName: string, emailAddress: string, phoneNumber: string | null } | null, shippingAddress: { fullName: string | null, streetLine1: string | null, streetLine2: string | null, city: string | null, province: string | null, postalCode: string | null, phoneNumber: string | null } | null, shippingLines: Array<{ priceWithTax: number, shippingMethod: { id: string, name: string } }>, discounts: Array<{ description: string, amountWithTax: number }>, lines: Array<{ id: string, quantity: number, unitPriceWithTax: number, linePriceWithTax: number, featuredAsset: { preview: string } | null, productVariant: { id: string, name: string, sku: string, product: { id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null } } }> } | null, activeCustomer: { id: string, firstName: string, lastName: string, emailAddress: string, phoneNumber: string | null, addresses: Array<{ fullName: string | null, streetLine1: string, streetLine2: string | null, city: string | null, province: string | null, postalCode: string | null, phoneNumber: string | null, defaultShippingAddress: boolean | null }> | null } | null, eligibleShippingMethods: Array<{ id: string, name: string, description: string, priceWithTax: number }>, eligiblePaymentMethods: Array<{ code: string, name: string, description: string, isEligible: boolean }> };
+export type CheckoutOptionsQuery = { activeOrder: { id: string, code: string, state: string, active: boolean, totalQuantity: number, subTotalWithTax: number, shippingWithTax: number, totalWithTax: number, customer: { id: string, firstName: string, lastName: string, emailAddress: string, phoneNumber: string | null } | null, shippingAddress: { fullName: string | null, streetLine1: string | null, streetLine2: string | null, city: string | null, province: string | null, postalCode: string | null, phoneNumber: string | null } | null, shippingLines: Array<{ priceWithTax: number, shippingMethod: { id: string, name: string } }>, discounts: Array<{ description: string, amountWithTax: number }>, lines: Array<{ id: string, quantity: number, unitPriceWithTax: number, linePriceWithTax: number, featuredAsset: { preview: string } | null, productVariant: { id: string, name: string, sku: string, product: { id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null, variants: Array<{ priceWithTax: number, customFields: { regularPrice: number | null } | null }> } } }> } | null, activeCustomer: { id: string, firstName: string, lastName: string, emailAddress: string, phoneNumber: string | null, addresses: Array<{ fullName: string | null, streetLine1: string, streetLine2: string | null, city: string | null, province: string | null, postalCode: string | null, phoneNumber: string | null, defaultShippingAddress: boolean | null }> | null } | null, eligibleShippingMethods: Array<{ id: string, name: string, description: string, priceWithTax: number }>, eligiblePaymentMethods: Array<{ code: string, name: string, description: string, isEligible: boolean }> };
 
 export type SetCustomerForOrderMutationVariables = Exact<{
   input: CreateCustomerInput;
@@ -455,20 +565,20 @@ export type OrderByCodeQueryVariables = Exact<{
 }>;
 
 
-export type OrderByCodeQuery = { orderByCode: { id: string, code: string, state: string, active: boolean, totalQuantity: number, subTotalWithTax: number, shippingWithTax: number, totalWithTax: number, customer: { id: string, firstName: string, lastName: string, emailAddress: string, phoneNumber: string | null } | null, shippingAddress: { fullName: string | null, streetLine1: string | null, streetLine2: string | null, city: string | null, province: string | null, postalCode: string | null, phoneNumber: string | null } | null, shippingLines: Array<{ priceWithTax: number, shippingMethod: { id: string, name: string } }>, discounts: Array<{ description: string, amountWithTax: number }>, lines: Array<{ id: string, quantity: number, unitPriceWithTax: number, linePriceWithTax: number, featuredAsset: { preview: string } | null, productVariant: { id: string, name: string, sku: string, product: { id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null } } }> } | null };
+export type OrderByCodeQuery = { orderByCode: { id: string, code: string, state: string, active: boolean, totalQuantity: number, subTotalWithTax: number, shippingWithTax: number, totalWithTax: number, customer: { id: string, firstName: string, lastName: string, emailAddress: string, phoneNumber: string | null } | null, shippingAddress: { fullName: string | null, streetLine1: string | null, streetLine2: string | null, city: string | null, province: string | null, postalCode: string | null, phoneNumber: string | null } | null, shippingLines: Array<{ priceWithTax: number, shippingMethod: { id: string, name: string } }>, discounts: Array<{ description: string, amountWithTax: number }>, lines: Array<{ id: string, quantity: number, unitPriceWithTax: number, linePriceWithTax: number, featuredAsset: { preview: string } | null, productVariant: { id: string, name: string, sku: string, product: { id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null, variants: Array<{ priceWithTax: number, customFields: { regularPrice: number | null } | null }> } } }> } | null };
 
-export type ProductSummaryFragment = { id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null };
+export type ProductSummaryFragment = { id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null, variants: Array<{ priceWithTax: number, customFields: { regularPrice: number | null } | null }> };
 
-export type VariantSummaryFragment = { id: string, priceWithTax: number, product: { id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null } };
+export type VariantSummaryFragment = { id: string, priceWithTax: number, product: { id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null, variants: Array<{ priceWithTax: number, customFields: { regularPrice: number | null } | null }> } };
 
-export type CollectionWithProductsFragment = { id: string, name: string, slug: string, description: string, customFields: { legacyId: number | null } | null, productVariants: { totalItems: number, items: Array<{ id: string, priceWithTax: number, product: { id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null } }> } };
+export type CollectionWithProductsFragment = { id: string, name: string, slug: string, description: string, customFields: { legacyId: number | null } | null, productVariants: { totalItems: number, items: Array<{ id: string, priceWithTax: number, product: { id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null, variants: Array<{ priceWithTax: number, customFields: { regularPrice: number | null } | null }> } }> } };
 
 export type ProductByLegacyIdQueryVariables = Exact<{
   legacyId: number;
 }>;
 
 
-export type ProductByLegacyIdQuery = { products: { items: Array<{ description: string, id: string, name: string, slug: string, seo: { metaTitle: string | null, metaDescription: string | null } | null, assets: Array<{ preview: string, customFields: { alt: string | null } | null }>, facetValues: Array<{ id: string, name: string, facet: { id: string, name: string } }>, collections: Array<{ id: string, name: string, slug: string, breadcrumbs: Array<{ id: string }>, customFields: { legacyId: number | null } | null, parent: { name: string, slug: string, customFields: { legacyId: number | null } | null } | null }>, variants: Array<{ id: string, name: string, sku: string, priceWithTax: number, stockLevel: string, options: Array<{ name: string }> }>, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null }> } };
+export type ProductByLegacyIdQuery = { products: { items: Array<{ description: string, id: string, name: string, slug: string, seo: { metaTitle: string | null, metaDescription: string | null } | null, assets: Array<{ preview: string, customFields: { alt: string | null } | null }>, facetValues: Array<{ id: string, name: string, facet: { id: string, name: string } }>, collections: Array<{ id: string, name: string, slug: string, breadcrumbs: Array<{ id: string }>, customFields: { legacyId: number | null } | null, parent: { name: string, slug: string, customFields: { legacyId: number | null } | null } | null }>, variants: Array<{ id: string, name: string, sku: string, priceWithTax: number, stockLevel: string, options: Array<{ name: string }>, customFields: { regularPrice: number | null, saleEndsAt: string | null } | null }>, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null }> } };
 
 export type CategoryLinkFragment = { id: string, name: string, slug: string, featuredAsset: { preview: string } | null, customFields: { legacyId: number | null } | null };
 
@@ -507,7 +617,7 @@ export type ProductsByIdsQueryVariables = Exact<{
 }>;
 
 
-export type ProductsByIdsQuery = { products: { items: Array<{ id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null }> } };
+export type ProductsByIdsQuery = { products: { items: Array<{ id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null, variants: Array<{ priceWithTax: number, customFields: { regularPrice: number | null } | null }> }> } };
 
 export type CollectionBySlugQueryVariables = Exact<{
   slug: string;
@@ -515,7 +625,21 @@ export type CollectionBySlugQueryVariables = Exact<{
 }>;
 
 
-export type CollectionBySlugQuery = { collection: { id: string, name: string, slug: string, description: string, customFields: { legacyId: number | null } | null, productVariants: { totalItems: number, items: Array<{ id: string, priceWithTax: number, product: { id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null } }> } } | null };
+export type CollectionBySlugQuery = { collection: { id: string, name: string, slug: string, description: string, customFields: { legacyId: number | null } | null, productVariants: { totalItems: number, items: Array<{ id: string, priceWithTax: number, product: { id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null, variants: Array<{ priceWithTax: number, customFields: { regularPrice: number | null } | null }> } }> } } | null };
+
+export type CollectionIdBySlugQueryVariables = Exact<{
+  slug: string;
+}>;
+
+
+export type CollectionIdBySlugQuery = { collection: { id: string } | null };
+
+export type RankedProductsQueryVariables = Exact<{
+  options: ProductListOptions;
+}>;
+
+
+export type RankedProductsQuery = { products: { totalItems: number, items: Array<{ id: string, name: string, slug: string, featuredAsset: { preview: string, customFields: { alt: string | null } | null } | null, customFields: { legacyId: number | null, ean13: string | null, urlCategory: string | null } | null, variants: Array<{ priceWithTax: number, customFields: { regularPrice: number | null } | null }> }> } };
 
 export type LegacyImageQueryVariables = Exact<{
   imageId: number;
@@ -628,6 +752,12 @@ export const ProductSummaryFragmentDoc = new TypedDocumentString(`
     ean13
     urlCategory
   }
+  variants {
+    priceWithTax
+    customFields {
+      regularPrice
+    }
+  }
 }
     `, {"fragmentName":"ProductSummary"}) as unknown as TypedDocumentString<ProductSummaryFragment, unknown>;
 export const CartOrderFragmentDoc = new TypedDocumentString(`
@@ -700,6 +830,12 @@ export const CartOrderFragmentDoc = new TypedDocumentString(`
     ean13
     urlCategory
   }
+  variants {
+    priceWithTax
+    customFields {
+      regularPrice
+    }
+  }
 }`, {"fragmentName":"CartOrder"}) as unknown as TypedDocumentString<CartOrderFragment, unknown>;
 export const VariantSummaryFragmentDoc = new TypedDocumentString(`
     fragment VariantSummary on ProductVariant {
@@ -723,6 +859,12 @@ export const VariantSummaryFragmentDoc = new TypedDocumentString(`
     legacyId
     ean13
     urlCategory
+  }
+  variants {
+    priceWithTax
+    customFields {
+      regularPrice
+    }
   }
 }`, {"fragmentName":"VariantSummary"}) as unknown as TypedDocumentString<VariantSummaryFragment, unknown>;
 export const CollectionWithProductsFragmentDoc = new TypedDocumentString(`
@@ -755,6 +897,12 @@ export const CollectionWithProductsFragmentDoc = new TypedDocumentString(`
     legacyId
     ean13
     urlCategory
+  }
+  variants {
+    priceWithTax
+    customFields {
+      regularPrice
+    }
   }
 }
 fragment VariantSummary on ProductVariant {
@@ -1035,6 +1183,12 @@ fragment ProductSummary on Product {
     ean13
     urlCategory
   }
+  variants {
+    priceWithTax
+    customFields {
+      regularPrice
+    }
+  }
 }`) as unknown as TypedDocumentString<ActiveOrderQuery, ActiveOrderQueryVariables>;
 export const CartCountDocument = new TypedDocumentString(`
     query CartCount {
@@ -1200,6 +1354,12 @@ fragment ProductSummary on Product {
     ean13
     urlCategory
   }
+  variants {
+    priceWithTax
+    customFields {
+      regularPrice
+    }
+  }
 }`) as unknown as TypedDocumentString<CheckoutOptionsQuery, CheckoutOptionsQueryVariables>;
 export const SetCustomerForOrderDocument = new TypedDocumentString(`
     mutation SetCustomerForOrder($input: CreateCustomerInput!) {
@@ -1328,6 +1488,12 @@ fragment ProductSummary on Product {
     ean13
     urlCategory
   }
+  variants {
+    priceWithTax
+    customFields {
+      regularPrice
+    }
+  }
 }`) as unknown as TypedDocumentString<OrderByCodeQuery, OrderByCodeQueryVariables>;
 export const ProductByLegacyIdDocument = new TypedDocumentString(`
     query ProductByLegacyId($legacyId: Float!) {
@@ -1380,6 +1546,10 @@ export const ProductByLegacyIdDocument = new TypedDocumentString(`
         options {
           name
         }
+        customFields {
+          regularPrice
+          saleEndsAt
+        }
       }
     }
   }
@@ -1398,6 +1568,12 @@ export const ProductByLegacyIdDocument = new TypedDocumentString(`
     legacyId
     ean13
     urlCategory
+  }
+  variants {
+    priceWithTax
+    customFields {
+      regularPrice
+    }
   }
 }`) as unknown as TypedDocumentString<ProductByLegacyIdQuery, ProductByLegacyIdQueryVariables>;
 export const CollectionByLegacyIdDocument = new TypedDocumentString(`
@@ -1518,6 +1694,12 @@ export const ProductsByIdsDocument = new TypedDocumentString(`
     ean13
     urlCategory
   }
+  variants {
+    priceWithTax
+    customFields {
+      regularPrice
+    }
+  }
 }`) as unknown as TypedDocumentString<ProductsByIdsQuery, ProductsByIdsQueryVariables>;
 export const CollectionBySlugDocument = new TypedDocumentString(`
     query CollectionBySlug($slug: String!, $take: Int!) {
@@ -1539,6 +1721,12 @@ export const CollectionBySlugDocument = new TypedDocumentString(`
     legacyId
     ean13
     urlCategory
+  }
+  variants {
+    priceWithTax
+    customFields {
+      regularPrice
+    }
   }
 }
 fragment VariantSummary on ProductVariant {
@@ -1563,6 +1751,44 @@ fragment CollectionWithProducts on Collection {
     }
   }
 }`) as unknown as TypedDocumentString<CollectionBySlugQuery, CollectionBySlugQueryVariables>;
+export const CollectionIdBySlugDocument = new TypedDocumentString(`
+    query CollectionIdBySlug($slug: String!) {
+  collection(slug: $slug) {
+    id
+  }
+}
+    `) as unknown as TypedDocumentString<CollectionIdBySlugQuery, CollectionIdBySlugQueryVariables>;
+export const RankedProductsDocument = new TypedDocumentString(`
+    query RankedProducts($options: ProductListOptions!) {
+  products(options: $options) {
+    totalItems
+    items {
+      ...ProductSummary
+    }
+  }
+}
+    fragment ProductSummary on Product {
+  id
+  name
+  slug
+  featuredAsset {
+    preview
+    customFields {
+      alt
+    }
+  }
+  customFields {
+    legacyId
+    ean13
+    urlCategory
+  }
+  variants {
+    priceWithTax
+    customFields {
+      regularPrice
+    }
+  }
+}`) as unknown as TypedDocumentString<RankedProductsQuery, RankedProductsQueryVariables>;
 export const LegacyImageDocument = new TypedDocumentString(`
     query LegacyImage($imageId: Int!) {
   legacyImage(imageId: $imageId) {

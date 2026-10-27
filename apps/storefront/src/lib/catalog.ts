@@ -1,7 +1,13 @@
 import 'server-only';
 
 import { SORTS, type CategoryParams } from './category-params';
-import { CATEGORY_PAGE, LISTING_FACETS, PRODUCTS_BY_IDS, type ProductSummary } from './queries';
+import {
+  CATEGORY_PAGE,
+  LISTING_FACETS,
+  PRODUCTS_BY_IDS,
+  RANKED_PRODUCTS,
+  type ProductSummary,
+} from './queries';
 import { shopQuery } from './vendure';
 
 export const PAGE_SIZE = 48;
@@ -106,4 +112,31 @@ async function withSummaries(
 export async function featuredProducts(take: number): Promise<CategoryProduct[]> {
   const { search } = await shopQuery(CATEGORY_PAGE, { input: { groupByProduct: true, take } });
   return withSummaries(search.items);
+}
+
+/**
+ * PrestaShop's new products and best sellers pages: every product, newest first (date added in
+ * PrestaShop), or the products sold at least once, best sellers first.
+ */
+export async function rankedProducts(
+  ranking: 'newest' | 'best-selling',
+  page: number,
+): Promise<{ products: CategoryProduct[]; pageCount: number }> {
+  const { products } = await shopQuery(RANKED_PRODUCTS, {
+    options: {
+      ...(ranking === 'newest'
+        ? { sort: { addedAt: 'DESC' as const } }
+        : { sort: { unitsSold: 'DESC' as const }, filter: { unitsSold: { gt: 0 } } }),
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+    },
+  });
+  return {
+    pageCount: Math.max(1, Math.ceil(products.totalItems / PAGE_SIZE)),
+    products: products.items.map((product) => {
+      const prices = product.variants.map((v) => v.priceWithTax);
+      const lowest = Math.min(...prices);
+      return { product, priceWithTax: lowest, from: prices.some((price) => price !== lowest) };
+    }),
+  };
 }

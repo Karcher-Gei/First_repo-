@@ -1,8 +1,10 @@
 'use client';
 
-import { cn, Price } from '@karcher/ui';
+import { cn, formatPrice, Price } from '@karcher/ui';
 import Link from 'next/link';
 import { useState } from 'react';
+
+import { discountPercent, saleEndText } from '@/lib/sale';
 
 import { AddToCartForm } from './cart';
 
@@ -13,6 +15,8 @@ export interface BuyBoxVariant {
   priceWithTax: number;
   stockLevel: string;
   options: { name: string }[];
+  /** On sale: the struck-through price and when the sale ends. */
+  customFields: { regularPrice: number | null; saleEndsAt: string | null } | null;
 }
 
 const STOCK: Record<string, { label: string; dot: string; text: string }> = {
@@ -37,6 +41,9 @@ export function BuyBox({ productId, variants }: { productId: string; variants: B
   }
   const stock = STOCK[variant.stockLevel];
   const outOfStock = variant.stockLevel === 'OUT_OF_STOCK';
+  const regularPrice = variant.customFields?.regularPrice ?? null;
+  const percent = discountPercent(variant.priceWithTax, regularPrice);
+  const saleEndsAt = percent > 0 ? variant.customFields?.saleEndsAt : null;
 
   return (
     <div className="space-y-5 rounded-card bg-surface p-5 ring-1 ring-line md:p-6">
@@ -69,10 +76,29 @@ export function BuyBox({ productId, variants }: { productId: string; variants: B
 
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="font-heading text-4xl font-extrabold leading-none">
+          {percent > 0 && regularPrice ? (
+            <p className="mb-2 flex items-center gap-2 text-sm">
+              <span className="rounded-full bg-danger px-2.5 py-0.5 font-bold text-white">
+                -{percent} %
+              </span>
+              <del className="text-ink-muted">
+                <span className="sr-only">au lieu de </span>
+                {formatPrice(regularPrice)}
+              </del>
+            </p>
+          ) : null}
+          <p
+            className={cn(
+              'font-heading text-4xl font-extrabold leading-none',
+              percent > 0 && 'text-danger',
+            )}
+          >
             <Price value={variant.priceWithTax} />
           </p>
-          <p className="mt-1 text-xs text-ink-muted">Prix TTC · Réf. {variant.sku}</p>
+          <p className="mt-1 text-xs text-ink-muted">
+            Prix TTC · Réf. {variant.sku}
+            {saleEndsAt ? ` · Offre valable ${saleEndText(saleEndsAt)}` : null}
+          </p>
         </div>
         {stock ? (
           <p className={cn('flex items-center gap-2 text-sm font-semibold', stock.text)}>
@@ -99,7 +125,7 @@ export function BuyBox({ productId, variants }: { productId: string; variants: B
         <div className="min-w-0">
           <p className="truncate text-xs text-ink-muted">{variantLabel(variant)}</p>
           <p className="font-heading text-xl font-extrabold leading-none">
-            <Price value={variant.priceWithTax} />
+            <Price value={variant.priceWithTax} previous={regularPrice} />
           </p>
         </div>
         <div className="ml-auto w-48">

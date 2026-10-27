@@ -124,6 +124,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
       sku: variant?.sku,
       gtin13: product.customFields?.ean13,
       price: (variant?.priceWithTax ?? 0) / 1000,
+      priceValidUntil: variant?.customFields?.saleEndsAt?.slice(0, 10),
       currency: 'TND',
       inStock,
     }),

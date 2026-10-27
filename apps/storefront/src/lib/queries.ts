@@ -23,6 +23,12 @@ graphql(`
       ean13
       urlCategory
     }
+    variants {
+      priceWithTax
+      customFields {
+        regularPrice
+      }
+    }
   }
 `);
 
@@ -106,6 +112,10 @@ export const PRODUCT_BY_LEGACY_ID = graphql(`
           stockLevel
           options {
             name
+          }
+          customFields {
+            regularPrice
+            saleEndsAt
           }
         }
       }
@@ -234,6 +244,26 @@ export const COLLECTION_BY_SLUG = graphql(`
   query CollectionBySlug($slug: String!, $take: Int!) {
     collection(slug: $slug) {
       ...CollectionWithProducts
+    }
+  }
+`);
+
+export const COLLECTION_ID_BY_SLUG = graphql(`
+  query CollectionIdBySlug($slug: String!) {
+    collection(slug: $slug) {
+      id
+    }
+  }
+`);
+
+/** Products in a given order: newest (addedAt) or best sellers (unitsSold). */
+export const RANKED_PRODUCTS = graphql(`
+  query RankedProducts($options: ProductListOptions!) {
+    products(options: $options) {
+      totalItems
+      items {
+        ...ProductSummary
+      }
     }
   }
 `);

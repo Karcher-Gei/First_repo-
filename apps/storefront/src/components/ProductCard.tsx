@@ -4,6 +4,7 @@ import Link from 'next/link';
 
 import { productHref } from '@/lib/paths';
 import type { ProductSummary } from '@/lib/queries';
+import { productSale } from '@/lib/sale';
 
 /** Product tile: image on the grey stage, name, price; the whole tile links to the product. */
 export function ProductCard({
@@ -20,6 +21,7 @@ export function ProductCard({
   if (!href) {
     return null;
   }
+  const sale = productSale(product.variants, priceWithTax);
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-card bg-surface ring-1 ring-line transition-all hover:-translate-y-0.5 hover:shadow-xl hover:ring-ink/20">
       <div className="relative aspect-square bg-stage">
@@ -44,6 +46,11 @@ export function ProductCard({
             Plusieurs versions
           </span>
         ) : null}
+        {sale.percent > 0 ? (
+          <span className="absolute right-3 top-3 rounded-full bg-danger px-2.5 py-0.5 text-sm font-bold text-white">
+            -{sale.percent} %
+          </span>
+        ) : null}
       </div>
       <div className="flex flex-1 flex-col gap-3 p-4">
         <h3 className="flex-1 font-semibold leading-snug">
@@ -55,7 +62,7 @@ export function ProductCard({
         <div className="flex items-end justify-between gap-2">
           <p className="text-lg leading-tight">
             {priceFrom ? <span className="block text-xs text-ink-muted">À partir de</span> : null}
-            <Price value={priceWithTax} />
+            <Price value={priceWithTax} previous={sale.regularPrice} />
           </p>
           <span
             aria-hidden="true"

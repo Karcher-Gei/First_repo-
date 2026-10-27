@@ -12,9 +12,12 @@ export function formatPrice(millimes: number): string {
 export function Price({ value, previous }: { value: number; previous?: number | null }) {
   return (
     <span className="inline-flex items-baseline gap-2">
-      <span className="font-bold text-ink">{formatPrice(value)}</span>
+      <span className="font-bold">{formatPrice(value)}</span>
       {previous && previous > value ? (
-        <span className="text-sm text-ink-muted line-through">{formatPrice(previous)}</span>
+        <del className="text-sm font-normal text-ink-muted">
+          <span className="sr-only">au lieu de </span>
+          {formatPrice(previous)}
+        </del>
       ) : null}
     </span>
   );

@@ -1,5 +1,6 @@
 // Configures the default channel for the Tunisian shop: TND, French, a Tunisia zone with 19% VAT,
-// a shipping method and the Konnect payment method. Safe to run again; existing records are kept.
+// a shipping method, the Konnect payment method and the Promotions collection. Safe to run again;
+// existing records are kept.
 // Needs a running server: `pnpm dev:server`, then `pnpm setup:channel`.
 import 'dotenv/config';
 
@@ -146,6 +147,19 @@ for (const pm of paymentMethodsWanted) {
   );
 }
 
+// "Promotions" collection behind /promotions: every variant on sale (MerchandisingPlugin).
+// It has no legacyId, so it stays out of the category menu and the sitemap.
+const { collections } = await gql(
+  `{ collections(options: { filter: { slug: { eq: "promotions" } } }) { items { id } } }`,
+);
+if (collections.items.length === 0) {
+  await gql(`mutation { createCollection(input: {
+        isPrivate: false,
+        filters: [{ code: "on-sale-filter", arguments: [] }],
+        translations: [{ languageCode: fr, name: "Promotions", slug: "promotions", description: "" }]
+    }) { id } }`);
+}
+
 console.log(
-  'Default channel configured: TND, fr, zone Tunisie, TVA 19%, shipping "standard", payment methods.',
+  'Default channel configured: TND, fr, zone Tunisie, TVA 19%, shipping "standard", payment methods, Promotions collection.',
 );

@@ -8,7 +8,8 @@
     "inventory": "tsx --env-file=.env src/inventory.ts",
     "import:shop": "tsx --env-file=.env src/import.ts",
     "check:urls": "tsx --env-file-if-exists=.env src/check-urls.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test test/*.test.ts"
   },
   "dependencies": {
     "@karcher/seo": "workspace:*",

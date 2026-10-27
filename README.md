@@ -122,24 +122,30 @@ pnpm --filter @karcher/migration check:urls        # every URL of the inventory 
 
 The Vendure server must be running, on a database prepared with `migrate` and `setup:channel`.
 
-| PrestaShop                          | Vendure / Payload                                                                   |
-| ----------------------------------- | ----------------------------------------------------------------------------------- |
-| Products, descriptions, meta tags   | Products with `legacyId`, `ean13` (valid EAN-8/13 only), `urlCategory`, SEO fields  |
-| Prices excluding VAT, tax rules     | Prices including VAT in millimes, one tax category per Tunisian rate (`TVA 7%`...)  |
-| Combinations (`Version`, ...)       | Option groups and variants, each with its SKU, price and stock                      |
-| Features                            | Facets: category filters and product specifications                                 |
-| Images (`img/p`), legends           | Assets with `legacyImageId` and `alt`, cover first; folder copy or the live site    |
-| Manufacturers (active)              | Values of the "marque" facet, with description and meta tags: brand pages           |
-| Categories (active, level 2+)       | Collections with the same tree, listing the products assigned in PrestaShop         |
-| Customers (registered, not deleted) | Customers with their PrestaShop password; addresses in Tunisia with the governorate |
-| CMS pages (active)                  | Payload pages with `legacyId`, HTML converted to rich text                          |
-| Trafic & SEO (`meta`, `meta_lang`)  | Payload: homepage meta tags and the "Pages fixes (SEO)" global                      |
+| PrestaShop                          | Vendure / Payload                                                                     |
+| ----------------------------------- | ------------------------------------------------------------------------------------- |
+| Products, descriptions, meta tags   | Products with `legacyId`, `ean13` (valid EAN-8/13 only), `urlCategory`, SEO fields    |
+| Prices excluding VAT, tax rules     | Prices including VAT in millimes, one tax category per Tunisian rate (`TVA 7%`...)    |
+| Combinations (`Version`, ...)       | Option groups and variants, each with its SKU, price and stock                        |
+| Features                            | Facets: category filters and product specifications                                   |
+| Images (`img/p`), legends           | Assets with `legacyImageId` and `alt`, cover first; folder copy or the live site      |
+| Manufacturers (active)              | Values of the "marque" facet, with description and meta tags: brand pages             |
+| Specific prices (current, everyone) | Sales: sale price, struck-through `regularPrice`, `saleEndsAt`; listed on /promotions |
+| Date added, units sold              | `addedAt`, `unitsSold` on products: /nouveaux-produits, /meilleures-ventes            |
+| Categories (active, level 2+)       | Collections with the same tree, listing the products assigned in PrestaShop           |
+| Customers (registered, not deleted) | Customers with their PrestaShop password; addresses in Tunisia with the governorate   |
+| CMS pages (active)                  | Payload pages with `legacyId`, HTML converted to rich text                            |
+| Trafic & SEO (`meta`, `meta_lang`)  | Payload: homepage meta tags and the "Pages fixes (SEO)" global                        |
 
 Passwords: PrestaShop 1.7+ bcrypt hashes (`$2y$`) are stored as `$2b$`, so customers sign in as before. PrestaShop 1.6
 MD5 hashes cannot be converted; those customers, and accounts inactive in PrestaShop, are listed in
 `out/password-reset.csv` and sign in after "Mot de passe oublié". Not migrated: order history, specific prices
-(promotions), suppliers, carriers, customer groups, newsletter consent and meta keywords (ignored by search
+for a customer group, a customer, a minimum quantity or a future date (counted or listed in the report), suppliers, carriers, customer groups, newsletter consent and meta keywords (ignored by search
 engines). A fixed page whose friendly URL differs from `STATIC_PAGES` in `packages/seo` is reported in the import report.
+
+Sales after the migration: in the dashboard, on a variant, set the sale price as its price and the
+previous price in "Prix barré" (Promotion tab), optionally with an end date. The variant joins /promotions, shows
+its discount, and gets its regular price back at the end date (the `end-sales` scheduled task, every 15 minutes).
 
 To try it without the real shop: `mysql prestashop < tools/migration/test/fixture.sql` (a small PrestaShop database
 with combinations, two VAT rates, inactive entries and both kinds of password hashes) and

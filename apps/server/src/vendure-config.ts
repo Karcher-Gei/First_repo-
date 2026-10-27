@@ -16,6 +16,7 @@ import { TndMoneyStrategy } from './config/tnd-money-strategy';
 import { FormsPlugin } from './plugins/forms/forms.plugin';
 import { KonnectPaymentPlugin } from './plugins/konnect-payment/konnect-payment.plugin';
 import { LegacyUrlsPlugin } from './plugins/legacy-urls/legacy-urls.plugin';
+import { MerchandisingPlugin } from './plugins/merchandising/merchandising.plugin';
 import { MetaCapiPlugin } from './plugins/meta-capi/meta-capi.plugin';
 import { QuotesPlugin } from './plugins/quotes/quotes.plugin';
 import { WarrantyPlugin } from './plugins/warranty/warranty.plugin';
@@ -125,6 +126,7 @@ export const config: VendureConfig = {
         WarrantyPlugin,
         FormsPlugin,
         LegacyUrlsPlugin,
+        MerchandisingPlugin,
         MetaCapiPlugin.init({
             pixelId: process.env.META_PIXEL_ID ?? '',
             accessToken: process.env.META_CAPI_ACCESS_TOKEN ?? '',

@@ -49,6 +49,9 @@ export interface PsProduct {
   id_category_default: number;
   /** 0 when the product has no brand. */
   id_manufacturer: number;
+  /** DATETIME as text (see prestaShopDate). */
+  date_add: string | null;
+  units_sold: number;
   category_slug: string;
   name: string;
   link_rewrite: string;
@@ -110,6 +113,26 @@ export interface PsImage {
   product_slug: string;
   /** Alt text, often empty. */
   legend: string | null;
+}
+
+/** A discount or fixed price (see import/sales.ts). Dates are DATETIME as text. */
+export interface PsSpecificPrice {
+  id_specific_price: number;
+  id_cart: number;
+  id_product: number;
+  id_product_attribute: number;
+  id_customer: number;
+  id_group: number;
+  /** Null for every country. */
+  country_iso: string | null;
+  from_quantity: number;
+  /** Fixed price excluding VAT, -1 to keep the product price. */
+  price: string;
+  reduction: string;
+  reduction_tax: number;
+  reduction_type: 'amount' | 'percentage';
+  from: string | null;
+  to: string | null;
 }
 
 /** A brand, at /{id}_{slug}. */
@@ -191,8 +214,10 @@ export class PrestaShopReader {
     return this.rows<PsProduct>(
       `SELECT p.id_product, p.id_tax_rules_group, p.reference, p.ean13, p.price, p.active,
               p.id_category_default, p.id_manufacturer, cl.link_rewrite AS category_slug, pl.name, pl.link_rewrite,
-              pl.description, pl.meta_title, pl.meta_description
+              pl.description, pl.meta_title, pl.meta_description,
+              CAST(p.date_add AS CHAR) AS date_add, COALESCE(s.quantity, 0) AS units_sold
        FROM ${this.t('product')} p
+       LEFT JOIN ${this.t('product_sale')} s ON s.id_product = p.id_product
        JOIN ${this.t('product_lang')} pl
          ON pl.id_product = p.id_product AND pl.id_lang = ? AND pl.id_shop = ?
        JOIN ${this.t('category_lang')} cl
@@ -277,6 +302,21 @@ export class PrestaShopReader {
        LEFT JOIN ${this.t('image_lang')} il ON il.id_image = i.id_image AND il.id_lang = ?
        ORDER BY i.id_product, i.position`,
       [this.cfg.langId, this.cfg.shopId, this.cfg.langId],
+    );
+  }
+
+  /** Specific prices of this shop (or every shop), in PrestaShop's default currency. */
+  specificPrices(): Promise<PsSpecificPrice[]> {
+    return this.rows<PsSpecificPrice>(
+      `SELECT sp.id_specific_price, sp.id_cart, sp.id_product, sp.id_product_attribute, sp.id_customer,
+              sp.id_group, co.iso_code AS country_iso, sp.from_quantity, sp.price, sp.reduction,
+              sp.reduction_tax, sp.reduction_type,
+              CAST(sp.\`from\` AS CHAR) AS \`from\`, CAST(sp.\`to\` AS CHAR) AS \`to\`
+       FROM ${this.t('specific_price')} sp
+       LEFT JOIN ${this.t('country')} co ON co.id_country = sp.id_country
+       WHERE sp.id_shop IN (0, ?)
+       ORDER BY sp.id_specific_price`,
+      [this.cfg.shopId],
     );
   }
 

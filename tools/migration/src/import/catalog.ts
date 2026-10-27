@@ -12,6 +12,7 @@ import type {
 import { codeOf, imageRelativePath, orNull, priceWithTaxMillimes, validEan } from '../util';
 import { ok, type VendureAdmin } from '../vendure-admin';
 import type { Report } from './report';
+import { pickSpecificPrice, prestaShopDate, saleOf, specificPriceStatus, type Sale } from './sales';
 
 /** Where the original product images are: a copy of PrestaShop's img/p folder, or the live site. */
 export type ImageSource = { dir: string } | { baseUrl: string };
@@ -78,6 +79,23 @@ export async function importCatalog(
   const featuresByProduct = groupBy(features, (f) => f.id_product);
   const imagesByProduct = groupBy(images, (i) => i.id_product);
 
+  // Discounts every visitor gets today; the others have no equivalent and are reported.
+  const now = new Date();
+  const specificPrices = (await ps.specificPrices()).filter(
+    (sp) => sp.id_product === 0 || importedIds.has(sp.id_product),
+  );
+  const applicable = specificPrices.filter((sp) => {
+    const status = specificPriceStatus(sp, now);
+    if (status === 'future') {
+      report.warn(
+        `Specific price ${sp.id_specific_price} (product ${sp.id_product}) starts on ${sp.from}: create the sale in Vendure then`,
+      );
+    } else if (status !== 'applies' && status !== 'cart') {
+      report.count(`specific prices left out (${status})`);
+    }
+    return status === 'applies';
+  });
+
   const existing = await existingProducts(admin);
   const productIds = new Map<number, string>();
   for (const product of products) {
@@ -101,6 +119,8 @@ export async function importCatalog(
         legacyId: product.id_product,
         ean13: validEan(product.ean13),
         urlCategory: product.category_slug,
+        addedAt: prestaShopDate(product.date_add)?.toISOString() ?? null,
+        unitsSold: Number(product.units_sold),
       },
       translations: [
         {
@@ -140,6 +160,16 @@ export async function importCatalog(
         combinations: combinations.get(product.id_product) ?? [],
         existingVariants: found?.variants ?? [],
         priceOf: (impact) => priceWithTaxMillimes(Number(product.price) + Number(impact), rate),
+        saleOf: (attributeId, impact) => {
+          const sp = pickSpecificPrice(applicable, product.id_product, attributeId);
+          return sp
+            ? saleOf(sp, {
+                productPrice: Number(product.price),
+                impact: Number(impact),
+                ratePercent: rate,
+              })
+            : null;
+        },
         stockOf: (attributeId) => stock.get(`${product.id_product}:${attributeId}`) ?? 0,
         taxCategoryId: taxCategories.get(rate)!,
         report,
@@ -473,19 +503,37 @@ async function syncVariants(
     combinations: PsCombinationAttribute[];
     existingVariants: { id: string; sku: string }[];
     priceOf: (impactExclTax: string | number) => number;
+    saleOf: (productAttributeId: number, impactExclTax: string | number) => Sale | null;
     stockOf: (productAttributeId: number) => number;
     taxCategoryId: string;
     report: Report;
   },
 ): Promise<void> {
   const { product, combinations } = args;
+  // On sale: the sale price, and the regular price kept to be struck through. Otherwise any
+  // earlier sale is cleared.
+  const priced = (price: number, sale: Sale | null) => {
+    if (sale) {
+      args.report.count('variants on sale');
+    }
+    return {
+      price: sale?.price ?? price,
+      customFields: {
+        regularPrice: sale?.regularPrice ?? null,
+        saleEndsAt: sale?.endsAt?.toISOString() ?? null,
+      },
+    };
+  };
   const wanted = combinations.length
     ? [...groupBy(combinations, (c) => c.id_product_attribute)].map(
         ([attributeId, attributes]) => ({
           attributeId,
           sku: orNull(attributes[0]!.reference) ?? `PS-${product.id_product}-${attributeId}`,
           name: `${product.name} ${attributes.map((a) => a.attribute_name).join(' ')}`,
-          price: args.priceOf(attributes[0]!.price),
+          ...priced(
+            args.priceOf(attributes[0]!.price),
+            args.saleOf(attributeId, attributes[0]!.price),
+          ),
           stockOnHand: args.stockOf(attributeId),
           attributes,
         }),
@@ -495,7 +543,7 @@ async function syncVariants(
           attributeId: 0,
           sku: orNull(product.reference) ?? `PS-${product.id_product}`,
           name: product.name,
-          price: args.priceOf(0),
+          ...priced(args.priceOf(0), args.saleOf(0, 0)),
           stockOnHand: args.stockOf(0),
           attributes: [] as PsCombinationAttribute[],
         },
@@ -519,6 +567,7 @@ async function syncVariants(
           id: match.id,
           sku: variant.sku,
           price: variant.price,
+          customFields: variant.customFields,
           stockOnHand: variant.stockOnHand,
           taxCategoryId: args.taxCategoryId,
         },
@@ -581,6 +630,7 @@ async function syncVariants(
         productId: args.productId,
         sku: variant.sku,
         price: variant.price,
+        customFields: variant.customFields,
         stockOnHand: variant.stockOnHand,
         taxCategoryId: args.taxCategoryId,
         optionIds: variant.attributes.map((a) => optionIds.get(a.id_attribute)!),

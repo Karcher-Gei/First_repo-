@@ -8,7 +8,7 @@ DROP TABLE IF EXISTS ka_lang, ka_country, ka_state, ka_tax, ka_tax_rules_group, 
   ka_product_attribute_combination, ka_attribute, ka_attribute_lang, ka_attribute_group_lang,
   ka_stock_available, ka_feature_lang, ka_feature_value_lang, ka_feature_product, ka_image,
   ka_customer, ka_address, ka_cms, ka_cms_lang, ka_image_lang, ka_manufacturer, ka_manufacturer_lang,
-  ka_meta, ka_meta_lang;
+  ka_meta, ka_meta_lang, ka_specific_price, ka_product_sale;
 
 CREATE TABLE ka_lang (id_lang INT PRIMARY KEY, iso_code VARCHAR(2));
 INSERT INTO ka_lang VALUES (1, 'fr');
@@ -83,6 +83,23 @@ INSERT INTO ka_feature_product VALUES (1, 867, 1), (2, 867, 4), (1, 101, 2), (2,
 
 CREATE TABLE ka_image (id_image INT PRIMARY KEY, id_product INT, position INT, cover TINYINT);
 INSERT INTO ka_image VALUES (2292, 867, 1, 1), (2293, 867, 2, NULL), (3001, 101, 1, 1), (3002, 104, 1, 1), (3003, 104, 2, NULL);
+-- Discounts: FC 3 -15% with no end, K 4 variant 12 -50 DT (tax incl.) until 2099, the brush at a fixed
+-- price for Tunisia; and rows the import must leave out: expired, future, group, quantity and cart prices.
+CREATE TABLE ka_specific_price (id_specific_price INT PRIMARY KEY, id_specific_price_rule INT, id_cart INT, id_product INT, id_shop INT, id_currency INT, id_country INT, id_group INT, id_customer INT, id_product_attribute INT, price DECIMAL(20,6), from_quantity INT, reduction DECIMAL(20,6), reduction_tax TINYINT, reduction_type VARCHAR(16), `from` DATETIME, `to` DATETIME);
+INSERT INTO ka_specific_price VALUES
+  (1, 0, 0, 867, 0, 0, 0, 0, 0, 0, -1, 1, 0.150000, 1, 'percentage', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+  (2, 0, 0, 101, 1, 0, 0, 0, 0, 12, -1, 1, 50.000000, 1, 'amount', '2026-01-01 00:00:00', '2099-12-31 23:59:59'),
+  (3, 0, 0, 102, 0, 0, 0, 0, 0, 0, -1, 1, 0.200000, 1, 'percentage', '2020-01-01 00:00:00', '2020-02-01 00:00:00'),
+  (4, 0, 0, 104, 0, 0, 0, 0, 0, 0, -1, 1, 0.100000, 1, 'percentage', '2099-01-01 00:00:00', '2099-02-01 00:00:00'),
+  (5, 0, 0, 102, 0, 0, 0, 4, 0, 0, -1, 1, 0.300000, 1, 'percentage', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+  (6, 0, 0, 102, 0, 0, 0, 0, 0, 0, -1, 10, 0.050000, 1, 'percentage', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+  (7, 0, 55, 102, 0, 0, 0, 0, 0, 0, 30.000000, 1, 0, 1, 'amount', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+  (8, 0, 0, 102, 0, 0, 208, 0, 0, 0, 35.000000, 1, 0, 1, 'amount', '0000-00-00 00:00:00', '0000-00-00 00:00:00');
+
+-- Units sold, for /meilleures-ventes.
+CREATE TABLE ka_product_sale (id_product INT PRIMARY KEY, quantity INT, sale_nbr INT, date_upd DATE);
+INSERT INTO ka_product_sale VALUES (867, 40, 31, '2026-09-01'), (101, 25, 20, '2026-09-01'), (102, 3, 3, '2026-08-01');
+
 -- Legends become the images' alt text; an empty legend falls back to the product name.
 CREATE TABLE ka_image_lang (id_image INT, id_lang INT, legend VARCHAR(128));
 INSERT INTO ka_image_lang VALUES

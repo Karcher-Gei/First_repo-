@@ -11,6 +11,8 @@ export interface ProductJsonLdInput {
   price: number;
   currency: string;
   inStock: boolean;
+  /** End of a sale price, e.g. "2026-12-31". */
+  priceValidUntil?: string | null;
 }
 
 export function productJsonLd(p: ProductJsonLdInput): Record<string, unknown> {
@@ -29,6 +31,7 @@ export function productJsonLd(p: ProductJsonLdInput): Record<string, unknown> {
       url: p.url,
       price: p.price.toFixed(3),
       priceCurrency: p.currency,
+      ...(p.priceValidUntil ? { priceValidUntil: p.priceValidUntil } : {}),
       availability: p.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
       itemCondition: 'https://schema.org/NewCondition',
     },
