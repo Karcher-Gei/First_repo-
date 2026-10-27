@@ -8,7 +8,8 @@ DROP TABLE IF EXISTS ka_lang, ka_country, ka_state, ka_tax, ka_tax_rules_group, 
   ka_product_attribute_combination, ka_attribute, ka_attribute_lang, ka_attribute_group_lang,
   ka_stock_available, ka_feature_lang, ka_feature_value_lang, ka_feature_product, ka_image,
   ka_customer, ka_address, ka_cms, ka_cms_lang, ka_image_lang, ka_manufacturer, ka_manufacturer_lang,
-  ka_meta, ka_meta_lang, ka_specific_price, ka_product_sale;
+  ka_meta, ka_meta_lang, ka_specific_price, ka_product_sale, ka_configuration, ka_hook, ka_module,
+  ka_hook_module, ka_homeslider, ka_homeslider_slides, ka_homeslider_slides_lang;
 
 CREATE TABLE ka_lang (id_lang INT PRIMARY KEY, iso_code VARCHAR(2));
 INSERT INTO ka_lang VALUES (1, 'fr');
@@ -154,3 +155,30 @@ INSERT INTO ka_cms_lang VALUES
   (62, 1, 1, 'Devenir revendeur', 'Rejoignez le réseau de revendeurs Kärcher en Tunisie.', '<h2>Pourquoi nous rejoindre ?</h2><p>Bénéficiez des <strong>conditions revendeur</strong> et du support de notre équipe.</p><ul><li>Formation produit</li><li>Livraison rapide</li></ul><p><a href="/nous-contacter">Contactez-nous</a></p>', 'devenir-revendeur'),
   (4, 1, 1, 'À propos', '', '<p>Karcher Tunisie, distributeur officiel.</p>', 'a-propos'),
   (9, 1, 1, 'Page désactivée', '', '<p>Brouillon.</p>', 'page-desactivee');
+
+-- The homepage (hook displayHome), in this order: image slider, specials, featured products ("Coup de
+-- cœur": products of the Home category, id 2), best sellers, and a theme module with no equivalent.
+CREATE TABLE ka_configuration (id_configuration INT PRIMARY KEY, id_shop_group INT, id_shop INT, name VARCHAR(254), value TEXT);
+INSERT INTO ka_configuration VALUES
+  (1, NULL, NULL, 'HOME_FEATURED_CAT', '2'), (2, NULL, NULL, 'HOME_FEATURED_NBR', '8'),
+  (3, NULL, NULL, 'BLOCKSPECIALS_SPECIALS_NBR', '6'), (4, NULL, NULL, 'PS_BLOCK_BESTSELLERS_TO_DISPLAY', '4');
+CREATE TABLE ka_hook (id_hook INT PRIMARY KEY, name VARCHAR(191));
+INSERT INTO ka_hook VALUES (8, 'displayHome'), (9, 'displayFooter');
+CREATE TABLE ka_module (id_module INT PRIMARY KEY, name VARCHAR(64), active TINYINT);
+INSERT INTO ka_module VALUES (20, 'ps_imageslider', 1), (21, 'ps_specials', 1), (22, 'ps_featuredproducts', 1),
+  (23, 'ps_bestsellers', 1), (24, 'tmhtmlcontent', 1), (25, 'ps_newproducts', 0), (26, 'ps_linklist', 1);
+CREATE TABLE ka_hook_module (id_module INT, id_shop INT, id_hook INT, position INT);
+INSERT INTO ka_hook_module VALUES (20, 1, 8, 1), (21, 1, 8, 2), (22, 1, 8, 3), (23, 1, 8, 4), (24, 1, 8, 5),
+  (25, 1, 8, 6), (26, 1, 9, 1);
+INSERT INTO ka_category_product VALUES (2, 101, 1), (2, 104, 3);
+
+-- Slides: two active, one inactive. Images are in modules/ps_imageslider/images (next to img/).
+CREATE TABLE ka_homeslider (id_homeslider_slides INT, id_shop INT);
+INSERT INTO ka_homeslider VALUES (1, 1), (2, 1), (3, 1);
+CREATE TABLE ka_homeslider_slides (id_homeslider_slides INT PRIMARY KEY, position INT, active TINYINT);
+INSERT INTO ka_homeslider_slides VALUES (1, 1, 1), (2, 2, 1), (3, 0, 0);
+CREATE TABLE ka_homeslider_slides_lang (id_homeslider_slides INT, id_lang INT, title VARCHAR(255), description TEXT, legend VARCHAR(255), url VARCHAR(255), image VARCHAR(255));
+INSERT INTO ka_homeslider_slides_lang VALUES
+  (1, 1, 'Nettoyeurs haute pression K 4', '<p>Jusqu’à -10 %</p>', 'Nettoyeur haute pression K 4 Kärcher', 'https://karcher-gei.tn/13-nettoyeurs-haute-pression', 'slide-k4.jpg'),
+  (2, 1, 'Aspirateur laveur FC 3', '', 'Aspirateur laveur FC 3', 'https://www.karcher-gei.tn/home-garden/867-aspirateur-laveur-fc-3-4054278634537.html', 'slide-fc3.jpg'),
+  (3, 1, 'Soldes d’hiver 2023', '', 'Soldes', 'https://karcher-gei.tn/promotions', 'soldes-2023.jpg');

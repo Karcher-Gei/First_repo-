@@ -1,13 +1,14 @@
 /**
  * Imports the PrestaShop shop into Vendure: catalog (taxes, features, images, products,
- * categories, brands), customers with their passwords, and CMS pages and fixed pages' meta tags
- * exported for Payload.
+ * categories, brands, sales), customers with their passwords, and for Payload: CMS pages, fixed
+ * pages' meta tags and the homepage.
  * Safe to run again: everything is matched on its PrestaShop id (customers on their e-mail).
  *
  *   pnpm --filter @karcher/migration import:shop                   # everything
  *   pnpm --filter @karcher/migration import:shop --only=catalog --limit=20
  *
- * Then: pnpm --filter @karcher/storefront import:cms  (reads out/cms-pages.json and out/page-meta.json)
+ * Then: pnpm --filter @karcher/storefront import:cms  (reads out/cms-pages.json, page-meta.json and
+ * homepage.json)
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -16,6 +17,7 @@ import { parseArgs } from 'node:util';
 
 import { importCatalog, type ImageSource } from './import/catalog';
 import { exportCmsPages, exportPageMetas } from './import/cms';
+import { exportHomepage, slideImageSource } from './import/homepage';
 import { importCustomers } from './import/customers';
 import { Report } from './import/report';
 import { configFromEnv, PrestaShopReader } from './prestashop';
@@ -95,6 +97,8 @@ async function main(): Promise<void> {
       writeFileSync(path.join(outDir, 'cms-pages.json'), `${JSON.stringify(pages, null, 2)}\n`);
       const metas = await exportPageMetas(ps, report);
       writeFileSync(path.join(outDir, 'page-meta.json'), `${JSON.stringify(metas, null, 2)}\n`);
+      const homepage = await exportHomepage(ps, slideImageSource(imageSourceFromEnv()), report);
+      writeFileSync(path.join(outDir, 'homepage.json'), `${JSON.stringify(homepage, null, 2)}\n`);
     }
   } finally {
     await ps.close();

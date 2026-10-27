@@ -135,6 +135,21 @@ export interface PsSpecificPrice {
   to: string | null;
 }
 
+/** A module shown on the homepage (hook displayHome), in display order. */
+export interface PsHomeModule {
+  name: string;
+  active: number;
+}
+
+/** A slide of the ps_imageslider module; `image` is a file in modules/ps_imageslider/images. */
+export interface PsSlide {
+  id_homeslider_slides: number;
+  title: string | null;
+  legend: string | null;
+  url: string | null;
+  image: string;
+}
+
 /** A brand, at /{id}_{slug}. */
 export interface PsManufacturer {
   id_manufacturer: number;
@@ -195,6 +210,18 @@ export class PrestaShopReader {
   private async rows<T>(sql: string, params: unknown[] = []): Promise<T[]> {
     const [rows] = await this.pool.query<RowDataPacket[]>(sql, params);
     return rows as T[];
+  }
+
+  /** Rows of a module's tables, or none when the module was never installed. */
+  private async moduleRows<T>(sql: string, params: unknown[] = []): Promise<T[]> {
+    try {
+      return await this.rows<T>(sql, params);
+    } catch (error) {
+      if ((error as { code?: string }).code === 'ER_NO_SUCH_TABLE') {
+        return [];
+      }
+      throw error;
+    }
   }
 
   categories(): Promise<PsCategory[]> {
@@ -317,6 +344,43 @@ export class PrestaShopReader {
        WHERE sp.id_shop IN (0, ?)
        ORDER BY sp.id_specific_price`,
       [this.cfg.shopId],
+    );
+  }
+
+  /** Configuration values by name; a value set for this shop wins over the global one. */
+  async configuration(names: string[]): Promise<Map<string, string>> {
+    const rows = await this.rows<{ name: string; value: string | null }>(
+      `SELECT name, value FROM ${this.t('configuration')}
+       WHERE name IN (?) AND (id_shop IS NULL OR id_shop = ?)
+       ORDER BY id_shop IS NOT NULL`,
+      [names, this.cfg.shopId],
+    );
+    return new Map(rows.flatMap((r) => (r.value == null ? [] : [[r.name, r.value] as const])));
+  }
+
+  homeModules(): Promise<PsHomeModule[]> {
+    return this.rows<PsHomeModule>(
+      `SELECT m.name, m.active
+       FROM ${this.t('hook_module')} hm
+       JOIN ${this.t('hook')} h ON h.id_hook = hm.id_hook AND h.name = 'displayHome'
+       JOIN ${this.t('module')} m ON m.id_module = hm.id_module
+       WHERE hm.id_shop = ?
+       ORDER BY hm.position`,
+      [this.cfg.shopId],
+    );
+  }
+
+  /** Active slides of the homepage slider, in order. */
+  homeSlides(): Promise<PsSlide[]> {
+    return this.moduleRows<PsSlide>(
+      `SELECT s.id_homeslider_slides, l.title, l.legend, l.url, l.image
+       FROM ${this.t('homeslider')} hs
+       JOIN ${this.t('homeslider_slides')} s ON s.id_homeslider_slides = hs.id_homeslider_slides
+       JOIN ${this.t('homeslider_slides_lang')} l
+         ON l.id_homeslider_slides = s.id_homeslider_slides AND l.id_lang = ?
+       WHERE hs.id_shop = ? AND s.active = 1
+       ORDER BY s.position`,
+      [this.cfg.langId, this.cfg.shopId],
     );
   }
 

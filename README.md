@@ -137,12 +137,20 @@ The Vendure server must be running, on a database prepared with `migrate` and `s
 | Customers (registered, not deleted) | Customers with their PrestaShop password; addresses in Tunisia with the governorate   |
 | CMS pages (active)                  | Payload pages with `legacyId`, HTML converted to rich text                            |
 | Trafic & SEO (`meta`, `meta_lang`)  | Payload: homepage meta tags and the "Pages fixes (SEO)" global                        |
+| Homepage (hook `displayHome`)       | Payload homepage: slider (`ps_imageslider`) and carousels (specials, featured, ...)   |
 
 Passwords: PrestaShop 1.7+ bcrypt hashes (`$2y$`) are stored as `$2b$`, so customers sign in as before. PrestaShop 1.6
 MD5 hashes cannot be converted; those customers, and accounts inactive in PrestaShop, are listed in
 `out/password-reset.csv` and sign in after "Mot de passe oublié". Not migrated: order history, specific prices
 for a customer group, a customer, a minimum quantity or a future date (counted or listed in the report), suppliers, carriers, customer groups, newsletter consent and meta keywords (ignored by search
 engines). A fixed page whose friendly URL differs from `STATIC_PAGES` in `packages/seo` is reported in the import report.
+
+Homepage: the modules PrestaShop shows on its homepage are rebuilt in order between the designed Kärcher
+sections: the image slider (images from `modules/ps_imageslider/images`, next to `img/`), Promotions, "Coup de
+cœur" (the featured products, a collection outside the menu), best sellers, new products. Other modules are
+listed in the import report. `import:cms` writes the homepage only while it has no blocks
+(`--replace-homepage` to rebuild it); staff then arrange the blocks in Payload. Uploaded images go to
+`apps/storefront/media`, which needs persistent storage in production.
 
 Sales after the migration: in the dashboard, on a variant, set the sale price as its price and the
 previous price in "Prix barré" (Promotion tab), optionally with an end date. The variant joins /promotions, shows

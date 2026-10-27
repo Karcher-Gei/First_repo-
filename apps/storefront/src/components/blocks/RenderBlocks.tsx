@@ -3,11 +3,21 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import { Container, CtaLink, SectionHeading } from '@/components/brand';
+import {
+  HomeAfterSales,
+  HomeCategories,
+  HomeHero,
+  HomeProBanner,
+  HomeUniverses,
+} from '@/components/home/sections';
 import { ProductCard } from '@/components/ProductCard';
 import { ProductRail } from '@/components/ProductRail';
+import { ServiceHighlights } from '@/components/ServiceHighlights';
+import { featuredProducts, rankedProducts, type CategoryProduct } from '@/lib/catalog';
 import { mediaOf } from '@/lib/cms';
 import { categoryHref } from '@/lib/paths';
 import { COLLECTION_BY_SLUG } from '@/lib/queries';
+import { SITE_NAME } from '@/lib/site';
 import { shopQuery } from '@/lib/vendure';
 import type {
   BannerBlock,
@@ -17,22 +27,49 @@ import type {
   RichTextBlock,
 } from '@/payload-types';
 
-type Block = NonNullable<Homepage['layout']>[number];
+export type Block = NonNullable<Homepage['layout']>[number];
+
+/** The homepage while the CMS has no blocks; the PrestaShop import builds its layout from it. */
+export const DEFAULT_HOMEPAGE: Block[] = [
+  { blockType: 'homeHero' },
+  { blockType: 'universes' },
+  { blockType: 'categoryGrid' },
+  { blockType: 'productCarousel', title: 'Notre sélection', source: 'catalog', limit: 12 },
+  { blockType: 'proBanner' },
+  { blockType: 'services' },
+  { blockType: 'afterSales' },
+];
 
 /** Renders the homepage blocks staff arrange in the CMS. */
 export function RenderBlocks({ blocks }: { blocks: Block[] }) {
+  // The Kärcher hero holds the page's h1; an imported slider has no heading.
+  const hasHeading = blocks.some((block) => block.blockType === 'homeHero');
   return (
     <div className="-mt-6 space-y-16 md:-mt-8 md:space-y-20">
-      {blocks.map((block) => {
+      {hasHeading ? null : <h1 className="sr-only">{SITE_NAME}</h1>}
+      {blocks.map((block, index) => {
+        const key = block.id ?? `${block.blockType}-${index}`;
         switch (block.blockType) {
+          case 'homeHero':
+            return <HomeHero key={key} heading={block.heading} text={block.text} />;
+          case 'universes':
+            return <HomeUniverses key={key} />;
+          case 'categoryGrid':
+            return <HomeCategories key={key} title={block.title} />;
+          case 'proBanner':
+            return <HomeProBanner key={key} />;
+          case 'services':
+            return <ServiceHighlights key={key} />;
+          case 'afterSales':
+            return <HomeAfterSales key={key} />;
           case 'heroSlider':
-            return <HeroSlider key={block.id} block={block} />;
+            return <HeroSlider key={key} block={block} />;
           case 'productCarousel':
-            return <ProductCarousel key={block.id} block={block} />;
+            return <ProductCarousel key={key} block={block} />;
           case 'banner':
-            return <Banner key={block.id} block={block} />;
+            return <Banner key={key} block={block} />;
           case 'richText':
-            return <RichTextSection key={block.id} block={block} />;
+            return <RichTextSection key={key} block={block} />;
           default:
             return null;
         }
@@ -89,28 +126,64 @@ function uniqueProducts<T extends { product: { id: string } }>(variants: T[]): T
   return variants.filter((v) => !seen.has(v.product.id) && (seen.add(v.product.id), true));
 }
 
+/** Products of a carousel, from a collection, the best sellers, the newest or the whole catalog. */
+async function carouselProducts(
+  block: ProductCarouselBlock,
+): Promise<{ products: CategoryProduct[]; href: string | null }> {
+  const limit = block.limit ?? 8;
+  switch (block.source) {
+    case 'best-sellers':
+      return {
+        products: (await rankedProducts('best-selling', 1)).products.slice(0, limit),
+        href: '/meilleures-ventes',
+      };
+    case 'newest':
+      return {
+        products: (await rankedProducts('newest', 1)).products.slice(0, limit),
+        href: '/nouveaux-produits',
+      };
+    case 'catalog':
+      return { products: await featuredProducts(limit), href: null };
+    default: {
+      if (!block.collectionSlug) {
+        return { products: [], href: null };
+      }
+      const { collection } = await shopQuery(COLLECTION_BY_SLUG, {
+        slug: block.collectionSlug,
+        take: limit * 3,
+      });
+      const variants = uniqueProducts(collection?.productVariants.items ?? []).slice(0, limit);
+      return {
+        products: variants.map((v) => ({
+          product: v.product,
+          priceWithTax: v.priceWithTax,
+          from: false,
+        })),
+        href: collection ? categoryHref(collection) : null,
+      };
+    }
+  }
+}
+
 async function ProductCarousel({ block }: { block: ProductCarouselBlock }) {
-  const { collection } = await shopQuery(COLLECTION_BY_SLUG, {
-    slug: block.collectionSlug,
-    take: block.limit ?? 6,
-  });
-  const variants = collection?.productVariants.items ?? [];
-  if (variants.length === 0) {
+  const { products, href } = await carouselProducts(block);
+  if (products.length === 0) {
     return null;
   }
-  const href = collection ? categoryHref(collection) : null;
+  const link = block.link || href;
   return (
     <section>
       <SectionHeading
         title={block.title}
-        action={href ? { href, label: 'Tout voir' } : undefined}
+        action={link ? { href: link, label: 'Tout voir' } : undefined}
       />
       <ProductRail label={block.title}>
-        {uniqueProducts(variants).map((variant) => (
+        {products.map(({ product, priceWithTax, from }) => (
           <ProductCard
-            key={variant.product.id}
-            product={variant.product}
-            priceWithTax={variant.priceWithTax}
+            key={product.id}
+            product={product}
+            priceWithTax={priceWithTax}
+            priceFrom={from}
           />
         ))}
       </ProductRail>

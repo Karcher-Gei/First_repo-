@@ -548,7 +548,20 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
  */
 export interface Homepage {
   id: number;
-  layout?: (HeroSliderBlock | ProductCarouselBlock | BannerBlock | RichTextBlock)[] | null;
+  layout?:
+    | (
+        | HomeHeroBlock
+        | HeroSliderBlock
+        | UniversesBlock
+        | ProductCarouselBlock
+        | CategoryGridBlock
+        | ProBannerBlock
+        | ServicesBlock
+        | AfterSalesBlock
+        | BannerBlock
+        | RichTextBlock
+      )[]
+    | null;
   meta?: {
     /**
      * Max ~60 characters
@@ -561,6 +574,20 @@ export interface Homepage {
   };
   updatedAt?: string | null;
   createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "HomeHeroBlock".
+ */
+export interface HomeHeroBlock {
+  /**
+   * Empty: "La puissance du nettoyage"
+   */
+  heading?: string | null;
+  text?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'homeHero';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -584,6 +611,15 @@ export interface HeroSliderBlock {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "UniversesBlock".
+ */
+export interface UniversesBlock {
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'universes';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "ProductCarouselBlock".
  */
 export interface ProductCarouselBlock {
@@ -591,14 +627,59 @@ export interface ProductCarouselBlock {
    * e.g. PROMOTIONS, COUP DE CŒUR
    */
   title: string;
+  source: 'collection' | 'best-sellers' | 'newest' | 'catalog';
   /**
-   * Slug of the Vendure collection to show, e.g. promotions
+   * Slug of the Vendure collection, e.g. promotions or coup-de-coeur
    */
-  collectionSlug: string;
+  collectionSlug?: string | null;
+  /**
+   * "Tout voir" link, e.g. /promotions
+   */
+  link?: string | null;
   limit?: number | null;
   id?: string | null;
   blockName?: string | null;
   blockType: 'productCarousel';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CategoryGridBlock".
+ */
+export interface CategoryGridBlock {
+  /**
+   * Empty: "Nos catégories"
+   */
+  title?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'categoryGrid';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ProBannerBlock".
+ */
+export interface ProBannerBlock {
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'proBanner';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ServicesBlock".
+ */
+export interface ServicesBlock {
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'services';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "AfterSalesBlock".
+ */
+export interface AfterSalesBlock {
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'afterSales';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -704,8 +785,14 @@ export interface HomepageSelect<T extends boolean = true> {
   layout?:
     | T
     | {
+        homeHero?: T | HomeHeroBlockSelect<T>;
         heroSlider?: T | HeroSliderBlockSelect<T>;
+        universes?: T | UniversesBlockSelect<T>;
         productCarousel?: T | ProductCarouselBlockSelect<T>;
+        categoryGrid?: T | CategoryGridBlockSelect<T>;
+        proBanner?: T | ProBannerBlockSelect<T>;
+        services?: T | ServicesBlockSelect<T>;
+        afterSales?: T | AfterSalesBlockSelect<T>;
         banner?: T | BannerBlockSelect<T>;
         richText?: T | RichTextBlockSelect<T>;
       };
@@ -718,6 +805,16 @@ export interface HomepageSelect<T extends boolean = true> {
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "HomeHeroBlock_select".
+ */
+export interface HomeHeroBlockSelect<T extends boolean = true> {
+  heading?: T;
+  text?: T;
+  id?: T;
+  blockName?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -737,12 +834,55 @@ export interface HeroSliderBlockSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "UniversesBlock_select".
+ */
+export interface UniversesBlockSelect<T extends boolean = true> {
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "ProductCarouselBlock_select".
  */
 export interface ProductCarouselBlockSelect<T extends boolean = true> {
   title?: T;
+  source?: T;
   collectionSlug?: T;
+  link?: T;
   limit?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CategoryGridBlock_select".
+ */
+export interface CategoryGridBlockSelect<T extends boolean = true> {
+  title?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ProBannerBlock_select".
+ */
+export interface ProBannerBlockSelect<T extends boolean = true> {
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ServicesBlock_select".
+ */
+export interface ServicesBlockSelect<T extends boolean = true> {
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "AfterSalesBlock_select".
+ */
+export interface AfterSalesBlockSelect<T extends boolean = true> {
   id?: T;
   blockName?: T;
 }

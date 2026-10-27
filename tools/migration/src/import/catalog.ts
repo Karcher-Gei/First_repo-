@@ -11,6 +11,7 @@ import type {
 } from '../prestashop';
 import { codeOf, imageRelativePath, orNull, priceWithTaxMillimes, validEan } from '../util';
 import { ok, type VendureAdmin } from '../vendure-admin';
+import { importFeaturedCollection } from './homepage';
 import type { Report } from './report';
 import { pickSpecificPrice, prestaShopDate, saleOf, specificPriceStatus, type Sale } from './sales';
 
@@ -188,6 +189,7 @@ export async function importCatalog(
     options.images,
     report,
   );
+  await importFeaturedCollection(ps, admin, productIds, report);
   return { productIds };
 }
 

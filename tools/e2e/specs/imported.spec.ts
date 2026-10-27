@@ -32,6 +32,20 @@ test('homepage and fixed pages keep their meta tags', async ({ page }) => {
   await expect(page).toHaveTitle('Contactez-nous');
 });
 
+test('homepage: PrestaShop slider and carousels among the Kärcher sections', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('La puissance du nettoyage');
+  await expect(page.getByRole('region', { name: 'À la une' })).toContainText(
+    'Nettoyeurs haute pression K 4',
+  );
+  await expect(page.locator('main h2')).toContainText([
+    'Promotions',
+    'Coup de cœur',
+    'Meilleures ventes',
+    'Nos catégories',
+  ]);
+});
+
 test('CMS page converted from PrestaShop HTML', async ({ page }) => {
   await page.goto('/content/62-devenir-revendeur');
   await expect(page.locator('main h2').first()).toBeVisible();
