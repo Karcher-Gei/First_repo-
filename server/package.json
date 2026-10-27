@@ -1,0 +1,43 @@
+{
+  "name": "@karcher/server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Vendure commerce backend (NestJS): catalog, orders, customers and the Karcher GEI plugins",
+  "scripts": {
+    "postinstall": "node scripts/copy-email-templates.mjs",
+    "dev": "vendure dev all",
+    "dev:server": "vendure dev server",
+    "dev:worker": "vendure dev worker",
+    "dev:dashboard": "vendure dev dashboard",
+    "build": "vendure build all",
+    "build:server": "vendure build server",
+    "build:worker": "vendure build worker",
+    "build:dashboard": "vendure build dashboard",
+    "start": "vendure start all",
+    "start:server": "node ./dist/index.js",
+    "start:worker": "node ./dist/index-worker.js",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@nestjs/common": "^12.0.1",
+    "@nestjs/graphql": "~14.0.0",
+    "@vendure/asset-server-plugin": "3.8.1",
+    "@vendure/common": "3.8.1",
+    "@vendure/core": "3.8.1",
+    "@vendure/dashboard": "3.8.1",
+    "@vendure/email-plugin": "3.8.1",
+    "@vendure/graphiql-plugin": "3.8.1",
+    "dotenv": "18.0.9",
+    "graphql": "^16.14.2",
+    "graphql-tag": "^2.12.6",
+    "pg": "8.23.1",
+    "typeorm": "^0.3.21"
+  },
+  "devDependencies": {
+    "@karcher/config": "workspace:*",
+    "@types/node": "^24.0.0",
+    "@vendure/cli": "3.8.1",
+    "typescript": "5.9.3",
+    "vite": "^7.3.1"
+  }
+}
