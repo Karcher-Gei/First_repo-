@@ -15,6 +15,7 @@ import path from 'path';
 import { TndMoneyStrategy } from './config/tnd-money-strategy';
 import { KarcherEmailGenerator } from './email/generator';
 import { karcherEmailHandlers } from './email/handlers';
+import { CatalogToolsPlugin } from './plugins/catalog-tools/catalog-tools.plugin';
 import { FormsPlugin } from './plugins/forms/forms.plugin';
 import { KonnectPaymentPlugin } from './plugins/konnect-payment/konnect-payment.plugin';
 import { LegacyUrlsPlugin } from './plugins/legacy-urls/legacy-urls.plugin';
@@ -134,6 +135,7 @@ export const config: VendureConfig = {
         FormsPlugin,
         LegacyUrlsPlugin,
         MerchandisingPlugin,
+        CatalogToolsPlugin,
         StorefrontCachePlugin.init({ storefrontUrl, secret: process.env.REVALIDATE_SECRET ?? '' }),
         MetaCapiPlugin.init({
             pixelId: process.env.META_PIXEL_ID ?? '',

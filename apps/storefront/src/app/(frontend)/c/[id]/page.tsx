@@ -87,7 +87,11 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   }
   const path = canonical ?? query.from ?? '/';
 
-  const listing = await loadListing({ collectionId: collection.id }, categoryParams);
+  const listing = await loadListing(
+    { collectionId: collection.id },
+    categoryParams,
+    collection.customFields?.filterFacetIds ?? [],
+  );
   const crumbs = crumbsOf(collection);
   const subcategories = [...(collection.children ?? [])]
     .sort((a, b) => a.position - b.position)

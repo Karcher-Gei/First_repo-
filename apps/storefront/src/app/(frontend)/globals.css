@@ -40,10 +40,24 @@ body {
 .rich-text strong {
   @apply font-bold;
 }
+/* Tables made in the dashboard editor: header cells, zebra rows, scroll sideways on phones. */
 .rich-text table {
-  @apply w-full text-sm;
+  @apply block w-full max-w-full overflow-x-auto text-sm;
 }
 .rich-text td,
 .rich-text th {
-  @apply border-b border-line px-2 py-1.5 text-left;
+  @apply border-b border-line px-3 py-2 text-left align-top;
+}
+.rich-text th {
+  @apply bg-stage font-bold;
+}
+.rich-text tr:nth-child(even) td {
+  @apply bg-stage/50;
+}
+.rich-text td p,
+.rich-text th p {
+  @apply m-0;
+}
+.rich-text img {
+  @apply h-auto max-w-full rounded-card;
 }

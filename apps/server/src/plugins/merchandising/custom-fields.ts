@@ -22,16 +22,21 @@ export const variantCustomFields: CustomFieldConfig[] = [
         nullable: true,
         public: true,
         label: [
-            { languageCode: LanguageCode.fr, value: 'Prix barré (TTC, millimes)' },
-            { languageCode: LanguageCode.en, value: 'Regular price (with tax, millimes)' },
+            { languageCode: LanguageCode.fr, value: 'Prix barré TTC' },
+            { languageCode: LanguageCode.en, value: 'Regular price (with tax)' },
         ],
         description: [
             {
                 languageCode: LanguageCode.en,
                 value: 'Set to put the variant on sale: the price above is the sale price, this one is shown struck through. Empty: no sale.',
             },
+            {
+                languageCode: LanguageCode.fr,
+                value: 'Pour mettre en promotion : le prix ci-dessus devient le prix promo, celui-ci est affiché barré. Vide : pas de promotion.',
+            },
         ],
-        ui: { tab: 'Promotion' },
+        // Entered in DT like the price (stored in millimes).
+        ui: { component: 'currency-form-input', tab: 'Promotion' },
     },
     {
         name: 'saleEndsAt',

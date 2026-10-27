@@ -59,7 +59,7 @@ Both database schemas come from migrations, never from automatic sync:
 | -------------------------------------------------- | --------------------------------------------------------------------- |
 | `pnpm dev`                                         | Runs the storefront, Vendure server, worker and dashboard             |
 | `pnpm typecheck`                                   | TypeScript across every package                                       |
-| `pnpm test`                                        | Unit tests (legacy URLs in `packages/seo`, PrestaShop price rules)    |
+| `pnpm test`                                        | Unit tests (legacy URLs, PrestaShop price rules, CSV parsing)         |
 | `pnpm test:e2e`                                    | Browser tests against the running stack (see "Browser tests")         |
 | `pnpm codegen`                                     | Regenerates Shop API types (Vendure server must be running)           |
 | `pnpm --filter @karcher/storefront generate:types` | Regenerates `payload-types.ts` after a CMS schema change              |
@@ -188,6 +188,20 @@ pnpm test:e2e
 
 The Konnect mock starts with the tests; the setup gives the product they buy enough stock. Run them again
 after the real import only on a copy: they place orders and create customers.
+
+## Managing the catalog
+
+The webmaster's guide, in French, is [docs/guide-webmaster.md](docs/guide-webmaster.md). Beyond Vendure's own
+screens (products with rich descriptions, tables and images; facets; collections), `CatalogToolsPlugin` adds:
+
+- **Catalog → Mise à jour CSV**: download the catalog, edit it in Excel, send it back; every row is checked and
+  the changes previewed before they are applied (price, regular price, discount %, end of sale, stock, quote
+  only, active, categories). Admin API: `catalogCsvExport`, `previewCatalogCsv`, `applyCatalogCsv`.
+- A **Catégories** block on the product page (a tree of checkboxes over the hand-picked collections).
+- **Filtres affichés** on each collection: which facets its page offers as filters.
+
+Products and categories created in the dashboard get the next URL id from 10001 (`LegacyIdAssigner`), so they
+have a URL at once and never take the URL of an old PrestaShop item.
 
 ## Professional range: price on quote only
 

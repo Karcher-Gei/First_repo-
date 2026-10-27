@@ -7,6 +7,7 @@ import {
     facetValueCustomFields,
     productCustomFields,
 } from './custom-fields';
+import { LegacyIdAssigner } from './legacy-id-assigner';
 import { LegacyRedirect } from './legacy-redirect.entity';
 import { LegacyUrlsAdminResolver, LegacyUrlsShopResolver } from './legacy-urls.resolvers';
 import { LegacyUrlsService } from './legacy-urls.service';
@@ -68,7 +69,7 @@ const adminSchema = gql`
 @VendurePlugin({
     imports: [PluginCommonModule],
     entities: [LegacyRedirect],
-    providers: [LegacyUrlsService],
+    providers: [LegacyUrlsService, LegacyIdAssigner],
     shopApiExtensions: { schema: shopSchema, resolvers: [LegacyUrlsShopResolver] },
     adminApiExtensions: { schema: adminSchema, resolvers: [LegacyUrlsAdminResolver] },
     configuration: config => {

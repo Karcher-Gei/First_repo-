@@ -35,9 +35,14 @@ export interface CategoryListing {
 /** What a listing shows: a category's products, a brand's (a facet value) or search results. */
 export type ListingScope = { collectionId: string } | { term: string } | { facetValueId: string };
 
+/**
+ * A page of a listing with its filters. `filterFacetIds`: the facets a category offers as filters,
+ * in that order (chosen in the dashboard); empty: every facet of its products.
+ */
 export async function loadListing(
   scope: ListingScope,
   params: CategoryParams,
+  filterFacetIds: string[] = [],
 ): Promise<CategoryListing> {
   const { facetValueId, ...scopeInput } = { facetValueId: undefined, ...scope };
   const scopeFilters = facetValueId ? [{ and: facetValueId }] : [];
@@ -75,9 +80,10 @@ export async function loadListing(
 
   return {
     // A facet with one value shared by every product (Type: Aspirateur in Aspirateurs) cannot narrow the list.
-    facets: [...facets.values()].filter(
-      (group) => group.values.length > 1 || group.values[0]?.count !== all.totalItems,
-    ),
+    facets: (filterFacetIds.length
+      ? filterFacetIds.flatMap((id) => facets.get(id) ?? [])
+      : [...facets.values()]
+    ).filter((group) => group.values.length > 1 || group.values[0]?.count !== all.totalItems),
     totalItems: search.totalItems,
     pageCount: Math.max(1, Math.ceil(search.totalItems / PAGE_SIZE)),
     products: await withSummaries(search.items),

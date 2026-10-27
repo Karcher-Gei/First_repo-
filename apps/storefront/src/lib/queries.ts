@@ -153,6 +153,7 @@ export const COLLECTION_BY_LEGACY_ID = graphql(`
           legacyId
           metaTitle
           metaDescription
+          filterFacetIds
         }
         parent {
           ...CategoryLink
