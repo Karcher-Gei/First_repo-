@@ -5,6 +5,9 @@
   "description": "Vendure commerce backend (NestJS): catalog, orders, customers and the Karcher GEI plugins",
   "scripts": {
     "postinstall": "node scripts/copy-email-templates.mjs",
+    "setup:channel": "node scripts/setup-channel.mjs",
+    "migrate": "vendure migrate --run",
+    "migration:generate": "vendure migrate -o src/migrations --generate",
     "dev": "vendure dev all",
     "dev:server": "vendure dev server",
     "dev:worker": "vendure dev worker",

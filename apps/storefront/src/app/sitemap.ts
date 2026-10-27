@@ -13,21 +13,27 @@ export const revalidate = 3600;
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [
     { url: absoluteUrl('/'), changeFrequency: 'daily', priority: 1 },
-    ...Object.keys(STATIC_PAGES).map(path => ({ url: absoluteUrl(path) })),
+    ...Object.keys(STATIC_PAGES).map((path) => ({ url: absoluteUrl(path) })),
   ];
 
-  const { collections } = await shopQuery(SITEMAP_COLLECTIONS, {});
-  for (const collection of collections.items) {
-    const { legacyId } = collection.customFields;
-    if (legacyId != null) {
-      entries.push({
-        url: absoluteUrl(categoryPath({ id: legacyId, slug: collection.slug })),
-        lastModified: collection.updatedAt,
-      });
+  // The Shop API returns at most 100 items per list query.
+  const take = 100;
+  for (let skip = 0; ; skip += take) {
+    const { collections } = await shopQuery(SITEMAP_COLLECTIONS, { skip, take });
+    for (const collection of collections.items) {
+      const { legacyId } = collection.customFields;
+      if (legacyId != null) {
+        entries.push({
+          url: absoluteUrl(categoryPath({ id: legacyId, slug: collection.slug })),
+          lastModified: collection.updatedAt,
+        });
+      }
+    }
+    if (collections.items.length < take) {
+      break;
     }
   }
 
-  const take = 100;
   for (let skip = 0; ; skip += take) {
     const { products } = await shopQuery(SITEMAP_PRODUCTS, { skip, take });
     for (const product of products.items) {
@@ -44,7 +50,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const cms = await getCms();
   const pages = await cms.find({ collection: 'pages', limit: 500, depth: 0 });
   for (const page of pages.docs) {
-    entries.push({ url: absoluteUrl(cmsPath({ id: page.legacyId, slug: page.slug })), lastModified: page.updatedAt });
+    entries.push({
+      url: absoluteUrl(cmsPath({ id: page.legacyId, slug: page.slug })),
+      lastModified: page.updatedAt,
+    });
   }
 
   return entries;

@@ -44,7 +44,8 @@ export const PRODUCT_BY_LEGACY_ID = typedQuery<
   { products: { items: ProductDetail[] } },
   { legacyId: number }
 >(/* GraphQL */ `
-  query ProductByLegacyId($legacyId: Int!) {
+  # Vendure list filters type every number as Float.
+  query ProductByLegacyId($legacyId: Float!) {
     products(options: { take: 1, filter: { legacyId: { eq: $legacyId } } }) {
       items {
         ${PRODUCT_SUMMARY}
@@ -82,7 +83,7 @@ export const COLLECTION_BY_LEGACY_ID = typedQuery<
   { collections: { items: CollectionWithProducts[] } },
   { legacyId: number; take: number }
 >(/* GraphQL */ `
-  query CollectionByLegacyId($legacyId: Int!, $take: Int!) {
+  query CollectionByLegacyId($legacyId: Float!, $take: Int!) {
     collections(options: { take: 1, filter: { legacyId: { eq: $legacyId } } }) {
       items { ${COLLECTION_FIELDS} }
     }
@@ -103,7 +104,9 @@ export const LEGACY_IMAGE = typedQuery<
   { imageId: number }
 >(/* GraphQL */ `
   query LegacyImage($imageId: Int!) {
-    legacyImage(imageId: $imageId) { preview }
+    legacyImage(imageId: $imageId) {
+      preview
+    }
   }
 `);
 
@@ -112,7 +115,10 @@ export const LEGACY_REDIRECT = typedQuery<
   { path: string }
 >(/* GraphQL */ `
   query LegacyRedirect($path: String!) {
-    legacyRedirect(path: $path) { toPath statusCode }
+    legacyRedirect(path: $path) {
+      toPath
+      statusCode
+    }
   }
 `);
 
@@ -124,31 +130,56 @@ export interface SubmitFormInput {
   fields?: Record<string, string>;
 }
 
-export const SUBMIT_FORM = typedQuery<{ submitForm: string }, { input: SubmitFormInput }>(/* GraphQL */ `
-  mutation SubmitForm($input: SubmitFormInput!) {
-    submitForm(input: $input)
-  }
-`);
+export const SUBMIT_FORM = typedQuery<{ submitForm: string }, { input: SubmitFormInput }>(
+  /* GraphQL */ `
+    mutation SubmitForm($input: SubmitFormInput!) {
+      submitForm(input: $input)
+    }
+  `,
+);
 
 export const SITEMAP_PRODUCTS = typedQuery<
-  { products: { totalItems: number; items: (Pick<ProductSummary, 'slug' | 'customFields'> & { updatedAt: string })[] } },
+  {
+    products: {
+      totalItems: number;
+      items: (Pick<ProductSummary, 'slug' | 'customFields'> & { updatedAt: string })[];
+    };
+  },
   { skip: number; take: number }
 >(/* GraphQL */ `
   query SitemapProducts($skip: Int!, $take: Int!) {
     products(options: { skip: $skip, take: $take }) {
       totalItems
-      items { slug updatedAt customFields { legacyId ean13 urlCategory } }
+      items {
+        slug
+        updatedAt
+        customFields {
+          legacyId
+          ean13
+          urlCategory
+        }
+      }
     }
   }
 `);
 
 export const SITEMAP_COLLECTIONS = typedQuery<
-  { collections: { items: { slug: string; updatedAt: string; customFields: { legacyId: number | null } }[] } },
-  Record<string, never>
+  {
+    collections: {
+      items: { slug: string; updatedAt: string; customFields: { legacyId: number | null } }[];
+    };
+  },
+  { skip: number; take: number }
 >(/* GraphQL */ `
-  query SitemapCollections {
-    collections(options: { take: 500 }) {
-      items { slug updatedAt customFields { legacyId } }
+  query SitemapCollections($skip: Int!, $take: Int!) {
+    collections(options: { skip: $skip, take: $take }) {
+      items {
+        slug
+        updatedAt
+        customFields {
+          legacyId
+        }
+      }
     }
   }
 `);
