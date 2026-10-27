@@ -1,0 +1,19 @@
+{{> header title="Activez votre compte" }}
+
+<mj-section background-color="#ffffff" padding="0 24px">
+    <mj-column>
+        <mj-text>
+            Bonjour,<br /><br />
+            Merci d’avoir créé votre compte Karcher Tunisie. Pour l’activer, confirmez votre adresse
+            e-mail :
+        </mj-text>
+        <mj-button align="left" href="{{ verifyEmailAddressUrl }}?token={{ verificationToken }}">
+            Activer mon compte
+        </mj-button>
+        <mj-text css-class="muted">
+            Si vous n’êtes pas à l’origine de cette inscription, ignorez simplement ce message.
+        </mj-text>
+    </mj-column>
+</mj-section>
+
+{{> footer }}

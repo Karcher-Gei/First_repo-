@@ -189,6 +189,14 @@ pnpm test:e2e
 The Konnect mock starts with the tests; the setup gives the product they buy enough stock. Run them again
 after the real import only on a copy: they place orders and create customers.
 
+## E-mails
+
+Templates in French with the Kärcher look are in `apps/server/email-templates` (MJML and Handlebars;
+`formatMoney` takes millimes). Customers get the order confirmation, account activation, password reset and
+e-mail change; with `SALES_ALERT_EMAIL` set, the sales team gets paid orders, quote requests and form
+messages, with reply-to set to the customer. In development they are written to the mailbox at
+http://localhost:3000/mailbox; set an SMTP transport in `vendure-config.ts` before going live.
+
 ## Catalog cache
 
 The storefront caches Shop API reads (`src/lib/vendure.ts`). When the catalog changes in Vendure (products,
@@ -199,7 +207,7 @@ simply expires after 5 minutes.
 
 ## Not done yet
 
-Still to do, per the migration plan: e-mail templates in French and production deployment. Before going live:
+Still to do, per the migration plan: production deployment. Before going live:
 
 - Run the import on the real database dump and review `out/import-report.txt`; `check:urls` must pass.
 - Check `apps/server/src/plugins/konnect-payment/types.ts` against Konnect's API docs; the flow is tested only

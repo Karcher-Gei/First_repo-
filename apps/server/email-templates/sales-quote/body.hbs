@@ -1,0 +1,29 @@
+{{> header title="Nouvelle demande de devis" }}
+
+<mj-section background-color="#ffffff" padding="0 24px">
+    <mj-column>
+        <mj-text>
+            <h2>Contact</h2>
+            {{ quote.fullName }}{{#if quote.company}} · {{ quote.company }}{{/if}}<br />
+            <a href="mailto:{{ quote.email }}">{{ quote.email }}</a>
+            {{#if quote.phone}}<br />{{ quote.phone }}{{/if}}
+        </mj-text>
+        {{#if lines.length}}
+            <mj-table css-class="lines">
+                {{#each lines}}
+                    <tr>
+                        <td>{{ quantity }} ×</td>
+                        <td>{{ name }}<br /><span class="muted">Réf. {{ sku }}</span></td>
+                    </tr>
+                {{/each}}
+            </mj-table>
+        {{/if}}
+        <mj-text>
+            <h2>Message</h2>
+            <span style="white-space:pre-line">{{ quote.message }}</span>
+        </mj-text>
+        <mj-button align="left" href="{{ dashboardUrl }}/quote-requests/{{ quote.id }}">Traiter la demande</mj-button>
+    </mj-column>
+</mj-section>
+
+{{> footer }}

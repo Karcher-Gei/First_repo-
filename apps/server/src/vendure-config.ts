@@ -5,7 +5,7 @@ import {
     DefaultSearchPlugin,
     VendureConfig,
 } from '@vendure/core';
-import { defaultEmailHandlers, EmailPlugin, FileBasedTemplateLoader } from '@vendure/email-plugin';
+import { EmailPlugin, FileBasedTemplateLoader } from '@vendure/email-plugin';
 import { AssetServerPlugin } from '@vendure/asset-server-plugin';
 import { DashboardPlugin } from '@vendure/dashboard/plugin';
 import { GraphiqlPlugin } from '@vendure/graphiql-plugin';
@@ -13,6 +13,8 @@ import 'dotenv/config';
 import path from 'path';
 
 import { TndMoneyStrategy } from './config/tnd-money-strategy';
+import { KarcherEmailGenerator } from './email/generator';
+import { karcherEmailHandlers } from './email/handlers';
 import { FormsPlugin } from './plugins/forms/forms.plugin';
 import { KonnectPaymentPlugin } from './plugins/konnect-payment/konnect-payment.plugin';
 import { LegacyUrlsPlugin } from './plugins/legacy-urls/legacy-urls.plugin';
@@ -100,14 +102,18 @@ export const config: VendureConfig = {
                           outputPath: path.join(__dirname, '../static/email/test-emails'),
                       },
                   }),
-            handlers: defaultEmailHandlers,
-            templateLoader: new FileBasedTemplateLoader(path.join(__dirname, '../static/email/templates')),
+            // French templates; alerts to the sales team when SALES_ALERT_EMAIL is set.
+            handlers: karcherEmailHandlers(process.env.SALES_ALERT_EMAIL ?? ''),
+            emailGenerator: new KarcherEmailGenerator(),
+            templateLoader: new FileBasedTemplateLoader(path.join(__dirname, '../email-templates')),
             globalTemplateVars: {
                 fromAddress: '"Karcher Tunisie" <noreply@karcher-gei.tn>',
                 verifyEmailAddressUrl: `${storefrontUrl}/compte/verification`,
                 passwordResetUrl: `${storefrontUrl}/compte/mot-de-passe`,
                 changeEmailAddressUrl: `${storefrontUrl}/compte/verification-email`,
                 adminPasswordResetUrl: `${serverPublicUrl}/dashboard/reset-password`,
+                storefrontUrl,
+                dashboardUrl: `${serverPublicUrl}/dashboard`,
             },
         }),
         DashboardPlugin.init({

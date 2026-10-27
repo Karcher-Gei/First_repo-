@@ -1,0 +1,29 @@
+{{> header title="Nouvelle commande payée" }}
+
+<mj-section background-color="#ffffff" padding="0 24px">
+    <mj-column>
+        <mj-text>
+            Commande <strong>{{ order.code }}</strong> du {{ formatDate order.orderPlacedAt }} :
+            <strong>{{ formatMoney order.totalWithTax }}</strong> TTC.
+        </mj-text>
+        <mj-text>
+            <h2>Client</h2>
+            {{ order.customer.firstName }} {{ order.customer.lastName }}<br />
+            <a href="mailto:{{ order.customer.emailAddress }}">{{ order.customer.emailAddress }}</a>
+            {{#if order.shippingAddress.phoneNumber}}<br />{{ order.shippingAddress.phoneNumber }}{{/if}}
+            {{#with order.shippingAddress}}<br />{{ streetLine1 }}, {{ postalCode }} {{ city }}{{#if province}} ({{ province }}){{/if}}{{/with}}
+        </mj-text>
+        <mj-table css-class="lines">
+            {{#each order.lines}}
+                <tr>
+                    <td>{{ quantity }} ×</td>
+                    <td>{{ productVariant.name }}<br /><span class="muted">Réf. {{ productVariant.sku }}</span></td>
+                    <td align="right">{{ formatMoney discountedLinePriceWithTax }}</td>
+                </tr>
+            {{/each}}
+        </mj-table>
+        <mj-button align="left" href="{{ dashboardUrl }}/orders/{{ order.id }}">Voir la commande</mj-button>
+    </mj-column>
+</mj-section>
+
+{{> footer }}

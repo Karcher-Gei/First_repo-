@@ -1,0 +1,17 @@
+{{> header title="Nouveau mot de passe administrateur" }}
+
+<mj-section background-color="#ffffff" padding="0 24px">
+    <mj-column>
+        <mj-text>
+            Une demande de nouveau mot de passe a été faite pour votre accès au tableau de bord.
+        </mj-text>
+        <mj-button align="left" href="{{ adminPasswordResetUrl }}?token={{ passwordResetToken }}">
+            Choisir un mot de passe
+        </mj-button>
+        <mj-text css-class="muted">
+            Si vous n’avez rien demandé, ignorez ce message.
+        </mj-text>
+    </mj-column>
+</mj-section>
+
+{{> footer }}

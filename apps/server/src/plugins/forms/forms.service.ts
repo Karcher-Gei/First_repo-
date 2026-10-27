@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
+    EventBus,
     ID,
     ListQueryBuilder,
     ListQueryOptions,
@@ -10,6 +11,7 @@ import {
 } from '@vendure/core';
 
 import { FORM_TYPES, FormSubmission, FormType } from './form-submission.entity';
+import { FormSubmittedEvent } from './form-submitted.event';
 
 export interface SubmitFormInput {
     form: string;
@@ -24,13 +26,14 @@ export class FormsService {
     constructor(
         private readonly connection: TransactionalConnection,
         private readonly listQueryBuilder: ListQueryBuilder,
+        private readonly eventBus: EventBus,
     ) {}
 
     async submit(ctx: RequestContext, input: SubmitFormInput): Promise<FormSubmission> {
         if (!isFormType(input.form)) {
             throw new UserInputError(`Unknown form "${input.form}"; expected one of ${FORM_TYPES.join(', ')}`);
         }
-        return this.connection.getRepository(ctx, FormSubmission).save(
+        const submission = await this.connection.getRepository(ctx, FormSubmission).save(
             new FormSubmission({
                 form: input.form,
                 fullName: input.fullName,
@@ -40,6 +43,8 @@ export class FormsService {
                 handled: false,
             }),
         );
+        await this.eventBus.publish(new FormSubmittedEvent(ctx, submission));
+        return submission;
     }
 
     async findAll(ctx: RequestContext, options?: ListQueryOptions<FormSubmission>): Promise<PaginatedList<FormSubmission>> {

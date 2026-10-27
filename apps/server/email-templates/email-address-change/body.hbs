@@ -1,0 +1,20 @@
+{{> header title="Confirmez votre nouvelle adresse" }}
+
+<mj-section background-color="#ffffff" padding="0 24px">
+    <mj-column>
+        <mj-text>
+            Bonjour,<br /><br />
+            Vous avez demandé à utiliser cette adresse pour votre compte Karcher Tunisie. Confirmez-la
+            pour terminer le changement :
+        </mj-text>
+        <mj-button align="left" href="{{ changeEmailAddressUrl }}?token={{ identifierChangeToken }}">
+            Confirmer mon adresse
+        </mj-button>
+        <mj-text css-class="muted">
+            Si vous n’êtes pas à l’origine de cette demande, ignorez ce message : votre compte n’est
+            pas modifié.
+        </mj-text>
+    </mj-column>
+</mj-section>
+
+{{> footer }}

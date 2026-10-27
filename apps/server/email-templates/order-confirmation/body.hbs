@@ -1,0 +1,76 @@
+{{> header title="Merci pour votre commande" }}
+
+<mj-section background-color="#ffffff" padding="0 24px">
+    <mj-column>
+        <mj-text>
+            Bonjour {{ order.customer.firstName }},<br /><br />
+            Nous avons bien reçu votre commande <strong>{{ order.code }}</strong> du
+            {{ formatDate order.orderPlacedAt }} et votre paiement. Nous la préparons et vous
+            prévenons dès son expédition.
+        </mj-text>
+    </mj-column>
+</mj-section>
+
+<mj-section background-color="#ffffff" padding="8px 24px">
+    <mj-column>
+        <mj-text><h2>Votre commande</h2></mj-text>
+        <mj-table css-class="lines">
+            {{#each order.lines}}
+                <tr>
+                    <td>{{ quantity }} ×</td>
+                    <td>{{ productVariant.name }}<br /><span class="muted">Réf. {{ productVariant.sku }}</span></td>
+                    <td align="right">{{ formatMoney discountedLinePriceWithTax }}</td>
+                </tr>
+            {{/each}}
+            {{#each order.discounts}}
+                <tr>
+                    <td></td>
+                    <td>{{ description }}</td>
+                    <td align="right">{{ formatMoney amountWithTax }}</td>
+                </tr>
+            {{/each}}
+            <tr>
+                <td></td>
+                <td>Sous-total</td>
+                <td align="right">{{ formatMoney order.subTotalWithTax }}</td>
+            </tr>
+            {{#each shippingLines}}
+                <tr>
+                    <td></td>
+                    <td>{{ shippingMethod.name }}</td>
+                    <td align="right">{{#if priceWithTax}}{{ formatMoney priceWithTax }}{{else}}Offerte{{/if}}</td>
+                </tr>
+            {{/each}}
+            <tr class="total">
+                <td></td>
+                <td>Total TTC</td>
+                <td align="right">{{ formatMoney order.totalWithTax }}</td>
+            </tr>
+        </mj-table>
+    </mj-column>
+</mj-section>
+
+<mj-section background-color="#ffffff" padding="8px 24px">
+    <mj-column>
+        {{#with order.shippingAddress}}
+            <mj-text>
+                <h2>Livraison</h2>
+                <ul class="address">
+                    <li>{{ fullName }}</li>
+                    {{#if company}}<li>{{ company }}</li>{{/if}}
+                    <li>{{ streetLine1 }}</li>
+                    {{#if streetLine2}}<li>{{ streetLine2 }}</li>{{/if}}
+                    <li>{{ postalCode }} {{ city }}{{#if province}}, {{ province }}{{/if}}</li>
+                    {{#if phoneNumber}}<li>{{ phoneNumber }}</li>{{/if}}
+                </ul>
+            </mj-text>
+        {{/with}}
+        <mj-text css-class="muted">
+            Une question sur votre commande ? Écrivez-nous depuis
+            <a href="{{ storefrontUrl }}/nous-contacter">la page contact</a> en indiquant sa
+            référence {{ order.code }}.
+        </mj-text>
+    </mj-column>
+</mj-section>
+
+{{> footer }}

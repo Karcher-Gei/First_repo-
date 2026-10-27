@@ -1,0 +1,19 @@
+{{> header title="Nouveau mot de passe" }}
+
+<mj-section background-color="#ffffff" padding="0 24px">
+    <mj-column>
+        <mj-text>
+            Bonjour,<br /><br />
+            Vous avez demandé à changer le mot de passe de votre compte Karcher Tunisie. Choisissez-en
+            un nouveau :
+        </mj-text>
+        <mj-button align="left" href="{{ passwordResetUrl }}?token={{ passwordResetToken }}">
+            Choisir un mot de passe
+        </mj-button>
+        <mj-text css-class="muted">
+            Si vous n’avez rien demandé, ignorez ce message : votre mot de passe reste inchangé.
+        </mj-text>
+    </mj-column>
+</mj-section>
+
+{{> footer }}

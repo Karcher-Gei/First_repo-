@@ -56,6 +56,9 @@ importers:
       graphql-tag:
         specifier: ^2.12.6
         version: 2.12.7(graphql@16.14.2)
+      handlebars:
+        specifier: ^4.7.10
+        version: 4.7.10
       pg:
         specifier: 8.23.1
         version: 8.23.1

@@ -9,7 +9,6 @@ coverage
 # Vendure
 apps/server/static/assets
 apps/server/static/email/test-emails
-apps/server/static/email/templates
 apps/server/src/gql
 apps/server/.vendure/*
 !apps/server/.vendure/project.json

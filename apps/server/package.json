@@ -4,7 +4,6 @@
   "private": true,
   "description": "Vendure commerce backend (NestJS): catalog, orders, customers and the Karcher GEI plugins",
   "scripts": {
-    "postinstall": "node scripts/copy-email-templates.mjs",
     "setup:channel": "node scripts/setup-channel.mjs",
     "migrate": "vendure migrate --run",
     "migration:generate": "vendure migrate -o src/migrations --generate",
@@ -33,6 +32,7 @@
     "dotenv": "18.0.9",
     "graphql": "^16.14.2",
     "graphql-tag": "^2.12.6",
+    "handlebars": "^4.7.10",
     "pg": "8.23.1",
     "typeorm": "^0.3.21"
   },

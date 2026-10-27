@@ -1,0 +1,23 @@
+{{> header title=title }}
+
+<mj-section background-color="#ffffff" padding="0 24px">
+    <mj-column>
+        <mj-text>
+            <h2>Contact</h2>
+            {{ submission.fullName }}<br />
+            <a href="mailto:{{ submission.email }}">{{ submission.email }}</a>
+            {{#if submission.phone}}<br />{{ submission.phone }}{{/if}}
+        </mj-text>
+        <mj-table css-class="lines">
+            {{#each fields}}
+                <tr>
+                    <td><strong>{{ label }}</strong></td>
+                    <td style="white-space:pre-line">{{ value }}</td>
+                </tr>
+            {{/each}}
+        </mj-table>
+        <mj-button align="left" href="{{ dashboardUrl }}/form-submissions">Voir les messages</mj-button>
+    </mj-column>
+</mj-section>
+
+{{> footer }}
