@@ -5,42 +5,47 @@ import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 
 import type { FacetGroup } from '@/lib/catalog';
-import { categoryQuery, type SortKey } from '@/lib/category-params';
+import { categoryQuery, type CategoryParams, type SortKey } from '@/lib/category-params';
 
 import { FilterIcon } from './icons';
 
 /**
- * Filters and sort as a plain GET form on the category URL, so they work without JavaScript;
- * with JavaScript, any change applies at once and the URL stays clean (no empty parameters).
+ * Filters and sort of a listing (category or search results) as a plain GET form, so they work
+ * without JavaScript; with JavaScript, any change applies at once and the URL stays clean.
+ * `base` holds parameters kept on every URL, such as the search term.
  */
 export function CategoryFilters({
   action,
+  base = {},
   facets,
-  selected,
-  order,
+  params,
   sorts,
 }: {
   action: string;
+  base?: Record<string, string>;
   facets: FacetGroup[];
-  selected: string[];
-  order: SortKey | null;
+  params: CategoryParams;
   sorts: { key: SortKey; label: string }[];
 }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   // Small screens: the panel opens from a button so the products come first.
   const [open, setOpen] = useState(false);
-  const active = selected.length + (order ? 1 : 0);
+  const active = params.facetValueIds.length + (params.order ? 1 : 0) + (params.inStock ? 1 : 0);
   const apply = () => {
     const form = new FormData(formRef.current!);
     const order = String(form.get('order') ?? '');
     router.push(
       action +
-        categoryQuery({
-          page: 1,
-          facetValueIds: form.getAll('q').map(String),
-          order: sorts.some((sort) => sort.key === order) ? (order as SortKey) : null,
-        }),
+        categoryQuery(
+          {
+            page: 1,
+            facetValueIds: form.getAll('q').map(String),
+            order: sorts.some((sort) => sort.key === order) ? (order as SortKey) : null,
+            inStock: form.get('stock') === '1',
+          },
+          base,
+        ),
     );
   };
   return (
@@ -70,11 +75,14 @@ export function CategoryFilters({
           apply();
         }}
       >
+        {Object.entries(base).map(([name, value]) => (
+          <input key={name} type="hidden" name={name} value={value} />
+        ))}
         <label className="block space-y-1">
           <span className="text-sm font-bold">Trier par</span>
           <select
             name="order"
-            defaultValue={order ?? ''}
+            defaultValue={params.order ?? ''}
             className="w-full rounded-card border border-line bg-surface px-3 py-2 text-sm"
           >
             <option value="">Pertinence</option>
@@ -85,6 +93,13 @@ export function CategoryFilters({
             ))}
           </select>
         </label>
+        <fieldset className="space-y-2">
+          <legend className="text-sm font-bold">Disponibilité</legend>
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" name="stock" value="1" defaultChecked={params.inStock} />
+            En stock uniquement
+          </label>
+        </fieldset>
         {facets.map((facet) => (
           <fieldset key={facet.id} className="space-y-2">
             <legend className="text-sm font-bold">{facet.name}</legend>
@@ -94,7 +109,7 @@ export function CategoryFilters({
                   type="checkbox"
                   name="q"
                   value={value.id}
-                  defaultChecked={selected.includes(value.id)}
+                  defaultChecked={params.facetValueIds.includes(value.id)}
                 />
                 <span className="flex-1">{value.name}</span>
                 <span className="text-ink-muted">{value.count}</span>
@@ -107,8 +122,14 @@ export function CategoryFilters({
             Filtrer
           </Button>
         </noscript>
-        {selected.length > 0 || order ? (
-          <a href={action} className="inline-block text-sm underline">
+        {active > 0 ? (
+          <a
+            href={
+              action +
+              categoryQuery({ page: 1, facetValueIds: [], order: null, inStock: false }, base)
+            }
+            className="inline-block text-sm underline"
+          >
             Effacer les filtres
           </a>
         ) : null}

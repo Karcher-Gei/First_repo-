@@ -146,10 +146,10 @@ export const COLLECTION_BY_LEGACY_ID = graphql(`
   }
 `);
 
-/** Every facet value in a category with its count, to list the filters. */
-export const CATEGORY_FACETS = graphql(`
-  query CategoryFacets($collectionId: ID!) {
-    search(input: { collectionId: $collectionId, groupByProduct: true, take: 0 }) {
+/** Every facet value of a listing (a category or search results) with its count, to list the filters. */
+export const LISTING_FACETS = graphql(`
+  query ListingFacets($input: SearchInput!) {
+    search(input: $input) {
       totalItems
       facetValues {
         count
@@ -166,7 +166,7 @@ export const CATEGORY_FACETS = graphql(`
   }
 `);
 
-/** One page of a category with the shopper's filters and sort applied. */
+/** One page of a listing with the shopper's filters and sort applied. */
 export const CATEGORY_PAGE = graphql(`
   query CategoryPage($input: SearchInput!) {
     search(input: $input) {
@@ -281,26 +281,6 @@ export const CATEGORY_TREE = graphql(`
           position
           customFields {
             legacyId
-          }
-        }
-      }
-    }
-  }
-`);
-
-export const PRODUCT_SEARCH = graphql(`
-  query ProductSearch($term: String!, $skip: Int!, $take: Int!) {
-    search(input: { term: $term, groupByProduct: true, skip: $skip, take: $take }) {
-      totalItems
-      items {
-        productId
-        priceWithTax {
-          ... on SinglePrice {
-            value
-          }
-          ... on PriceRange {
-            min
-            max
           }
         }
       }

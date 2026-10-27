@@ -7,8 +7,14 @@ import { Breadcrumbs, type Crumb } from '@/components/Breadcrumbs';
 import { CategoryFilters } from '@/components/CategoryFilters';
 import { Pagination } from '@/components/Pagination';
 import { ProductCard } from '@/components/ProductCard';
-import { loadCategoryListing } from '@/lib/catalog';
-import { categoryQuery, parseCategoryParams, SORTS, type SortKey } from '@/lib/category-params';
+import { loadListing } from '@/lib/catalog';
+import {
+  categoryQuery,
+  isFiltered,
+  parseCategoryParams,
+  SORTS,
+  type SortKey,
+} from '@/lib/category-params';
 import { categoryHref } from '@/lib/paths';
 import { COLLECTION_BY_LEGACY_ID } from '@/lib/queries';
 import { redirectOrNotFound } from '@/lib/redirects';
@@ -51,10 +57,13 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     return {};
   }
   const canonical = categoryHref(collection);
-  const { page, facetValueIds, order } = parseCategoryParams(query);
+  const listingParams = parseCategoryParams(query);
+  const { page } = listingParams;
   // Each page of the plain listing is indexable on its own URL; filtered or sorted variants are not.
-  const filtered = facetValueIds.length > 0 || order !== null;
-  const pageQuery = filtered ? '' : categoryQuery({ page, facetValueIds: [], order: null });
+  const filtered = isFiltered(listingParams);
+  const pageQuery = filtered
+    ? ''
+    : categoryQuery({ page, facetValueIds: [], order: null, inStock: false });
   // Meta tags migrated from PrestaShop win; PrestaShop titles already end with the shop name.
   const metaTitle = collection.customFields?.metaTitle;
   return {
@@ -83,7 +92,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   }
   const path = canonical ?? query.from ?? '/';
 
-  const listing = await loadCategoryListing(collection.id, categoryParams);
+  const listing = await loadListing({ collectionId: collection.id }, categoryParams);
   const sorts = (Object.keys(SORTS) as SortKey[]).map((key) => ({ key, label: SORTS[key].label }));
   const crumbs = crumbsOf(collection);
   const subcategories = [...(collection.children ?? [])]
@@ -128,8 +137,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           <CategoryFilters
             action={path}
             facets={listing.facets}
-            selected={categoryParams.facetValueIds}
-            order={categoryParams.order}
+            params={categoryParams}
             sorts={sorts}
           />
         </aside>

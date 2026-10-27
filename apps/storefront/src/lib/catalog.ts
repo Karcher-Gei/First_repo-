@@ -1,13 +1,7 @@
 import 'server-only';
 
 import { SORTS, type CategoryParams } from './category-params';
-import {
-  CATEGORY_FACETS,
-  CATEGORY_PAGE,
-  PRODUCT_SEARCH,
-  PRODUCTS_BY_IDS,
-  type ProductSummary,
-} from './queries';
+import { CATEGORY_PAGE, LISTING_FACETS, PRODUCTS_BY_IDS, type ProductSummary } from './queries';
 import { shopQuery } from './vendure';
 
 export const PAGE_SIZE = 48;
@@ -32,11 +26,16 @@ export interface CategoryListing {
   pageCount: number;
 }
 
-export async function loadCategoryListing(
-  collectionId: string,
+/** What a listing shows: a category's products, or the results of a search. */
+export type ListingScope = { collectionId: string } | { term: string };
+
+export async function loadListing(
+  scope: ListingScope,
   params: CategoryParams,
 ): Promise<CategoryListing> {
-  const { search: all } = await shopQuery(CATEGORY_FACETS, { collectionId });
+  const { search: all } = await shopQuery(LISTING_FACETS, {
+    input: { ...scope, groupByProduct: true, take: 0 },
+  });
   const facets = new Map<string, FacetGroup>();
   for (const { count, facetValue } of all.facetValues) {
     const group = facets.get(facetValue.facet.id) ?? {
@@ -56,9 +55,10 @@ export async function loadCategoryListing(
 
   const { search } = await shopQuery(CATEGORY_PAGE, {
     input: {
-      collectionId,
+      ...scope,
       groupByProduct: true,
       facetValueFilters,
+      inStock: params.inStock || undefined,
       sort: params.order ? SORTS[params.order].sort : undefined,
       skip: (params.page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
@@ -98,20 +98,6 @@ async function withSummaries(
       ? [{ product, priceWithTax: price.value, from: false }]
       : [{ product, priceWithTax: price.min, from: price.min !== price.max }];
   });
-}
-
-/** Full-text search over the catalog: product names, descriptions and references. */
-export async function searchProducts(term: string, page: number) {
-  const { search } = await shopQuery(PRODUCT_SEARCH, {
-    term,
-    skip: (page - 1) * PAGE_SIZE,
-    take: PAGE_SIZE,
-  });
-  return {
-    totalItems: search.totalItems,
-    pageCount: Math.max(1, Math.ceil(search.totalItems / PAGE_SIZE)),
-    products: await withSummaries(search.items),
-  };
 }
 
 /** A selection from the whole catalog, for the default homepage. */

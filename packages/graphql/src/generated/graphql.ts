@@ -479,12 +479,12 @@ export type CollectionByLegacyIdQueryVariables = Exact<{
 
 export type CollectionByLegacyIdQuery = { collections: { items: Array<{ id: string, name: string, slug: string, description: string, customFields: { legacyId: number | null, metaTitle: string | null, metaDescription: string | null } | null, parent: { id: string, name: string, slug: string, parent: { id: string, name: string, slug: string, customFields: { legacyId: number | null } | null } | null, customFields: { legacyId: number | null } | null } | null, children: Array<{ position: number, id: string, name: string, slug: string, customFields: { legacyId: number | null } | null }> | null }> } };
 
-export type CategoryFacetsQueryVariables = Exact<{
-  collectionId: string | number;
+export type ListingFacetsQueryVariables = Exact<{
+  input: SearchInput;
 }>;
 
 
-export type CategoryFacetsQuery = { search: { totalItems: number, facetValues: Array<{ count: number, facetValue: { id: string, name: string, facet: { id: string, name: string } } }> } };
+export type ListingFacetsQuery = { search: { totalItems: number, facetValues: Array<{ count: number, facetValue: { id: string, name: string, facet: { id: string, name: string } } }> } };
 
 export type CategoryPageQueryVariables = Exact<{
   input: SearchInput;
@@ -553,18 +553,6 @@ export type CategoryTreeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type CategoryTreeQuery = { collections: { items: Array<{ id: string, name: string, slug: string, featuredAsset: { preview: string } | null, customFields: { legacyId: number | null } | null, children: Array<{ id: string, name: string, slug: string, position: number, customFields: { legacyId: number | null } | null }> | null }> } };
-
-export type ProductSearchQueryVariables = Exact<{
-  term: string;
-  skip: number;
-  take: number;
-}>;
-
-
-export type ProductSearchQuery = { search: { totalItems: number, items: Array<{ productId: string, priceWithTax:
-        | { min: number, max: number }
-        | { value: number }
-       }> } };
 
 export type QuoteProductQueryVariables = Exact<{
   id: string | number;
@@ -1411,9 +1399,9 @@ export const CollectionByLegacyIdDocument = new TypedDocumentString(`
     legacyId
   }
 }`) as unknown as TypedDocumentString<CollectionByLegacyIdQuery, CollectionByLegacyIdQueryVariables>;
-export const CategoryFacetsDocument = new TypedDocumentString(`
-    query CategoryFacets($collectionId: ID!) {
-  search(input: {collectionId: $collectionId, groupByProduct: true, take: 0}) {
+export const ListingFacetsDocument = new TypedDocumentString(`
+    query ListingFacets($input: SearchInput!) {
+  search(input: $input) {
     totalItems
     facetValues {
       count
@@ -1428,7 +1416,7 @@ export const CategoryFacetsDocument = new TypedDocumentString(`
     }
   }
 }
-    `) as unknown as TypedDocumentString<CategoryFacetsQuery, CategoryFacetsQueryVariables>;
+    `) as unknown as TypedDocumentString<ListingFacetsQuery, ListingFacetsQueryVariables>;
 export const CategoryPageDocument = new TypedDocumentString(`
     query CategoryPage($input: SearchInput!) {
   search(input: $input) {
@@ -1585,25 +1573,6 @@ export const CategoryTreeDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<CategoryTreeQuery, CategoryTreeQueryVariables>;
-export const ProductSearchDocument = new TypedDocumentString(`
-    query ProductSearch($term: String!, $skip: Int!, $take: Int!) {
-  search(input: {term: $term, groupByProduct: true, skip: $skip, take: $take}) {
-    totalItems
-    items {
-      productId
-      priceWithTax {
-        ... on SinglePrice {
-          value
-        }
-        ... on PriceRange {
-          min
-          max
-        }
-      }
-    }
-  }
-}
-    `) as unknown as TypedDocumentString<ProductSearchQuery, ProductSearchQueryVariables>;
 export const QuoteProductDocument = new TypedDocumentString(`
     query QuoteProduct($id: ID!) {
   product(id: $id) {

@@ -12,7 +12,19 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/panier', '/commande', '/compte', '/admin-cms', '/api/', '/*?q=', '/*&q=', '/*?order=', '/*&order='],
+      disallow: [
+        '/panier',
+        '/commande',
+        '/compte',
+        '/admin-cms',
+        '/api/',
+        '/*?q=',
+        '/*&q=',
+        '/*?order=',
+        '/*&order=',
+        '/*?stock=',
+        '/*&stock=',
+      ],
     },
     sitemap: absoluteUrl('/sitemap.xml'),
   };

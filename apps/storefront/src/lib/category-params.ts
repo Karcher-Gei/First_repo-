@@ -1,6 +1,6 @@
 import type { SearchInput } from '@karcher/graphql';
 
-/* Category URL parameters, shared by the page (server) and the filter form (browser). */
+/* Listing URL parameters (category and search pages), shared by the page (server) and the filter form (browser). */
 
 /** Sort options, in PrestaShop's `?order=` parameter (robots.txt already keeps it out of the index). */
 export const SORTS = {
@@ -17,6 +17,8 @@ export interface CategoryParams {
   /** Selected facet value ids, from `?q=` (robots.txt already keeps it out of the index). */
   facetValueIds: string[];
   order: SortKey | null;
+  /** In-stock products only, from `?stock=1` (kept out of the index like the other filters). */
+  inStock: boolean;
 }
 
 type RawParams = Record<string, string | string[] | undefined>;
@@ -33,14 +35,26 @@ export function parseCategoryParams(params: RawParams): CategoryParams {
     page: Number.isSafeInteger(page) && page > 1 ? page : 1,
     facetValueIds: [...new Set(list(params.q).filter((id) => /^\d+$/.test(id)))],
     order,
+    inStock: params.stock === '1',
   };
 }
 
-/** Query string for a category URL; page 1, no filter and the default sort are left out. */
-export function categoryQuery(params: CategoryParams): string {
-  const search = new URLSearchParams();
+/** Whether the listing is narrowed or re-sorted, which makes it a variant not worth indexing. */
+export function isFiltered(params: CategoryParams): boolean {
+  return params.facetValueIds.length > 0 || params.order !== null || params.inStock;
+}
+
+/**
+ * Query string for a listing URL; page 1, no filter and the default sort are left out.
+ * `base` holds parameters that come first, such as the search term (`s`).
+ */
+export function categoryQuery(params: CategoryParams, base: Record<string, string> = {}): string {
+  const search = new URLSearchParams(base);
   if (params.facetValueIds.length > 0) {
     search.set('q', params.facetValueIds.join(','));
+  }
+  if (params.inStock) {
+    search.set('stock', '1');
   }
   if (params.order) {
     search.set('order', params.order);
