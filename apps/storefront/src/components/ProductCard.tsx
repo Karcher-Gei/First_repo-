@@ -3,10 +3,18 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import { productHref } from '@/lib/paths';
-import type { VariantSummary } from '@/lib/queries';
+import type { ProductSummary } from '@/lib/queries';
 
-export function ProductCard({ variant }: { variant: VariantSummary }) {
-  const { product } = variant;
+export function ProductCard({
+  product,
+  priceWithTax,
+  priceFrom = false,
+}: {
+  product: ProductSummary;
+  priceWithTax: number;
+  /** The product's variants have different prices; `priceWithTax` is the lowest. */
+  priceFrom?: boolean;
+}) {
   const href = productHref(product);
   if (!href) {
     return null;
@@ -25,7 +33,10 @@ export function ProductCard({ variant }: { variant: VariantSummary }) {
         ) : null}
         <h3 className="text-sm font-semibold">{product.name}</h3>
       </Link>
-      <Price value={variant.priceWithTax} />
+      <span className="text-sm">
+        {priceFrom ? 'À partir de ' : null}
+        <Price value={priceWithTax} />
+      </span>
     </article>
   );
 }

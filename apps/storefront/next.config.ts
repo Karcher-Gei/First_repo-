@@ -12,6 +12,8 @@ const nextConfig: NextConfig = {
   // Workspace packages ship TypeScript source.
   transpilePackages: ['@karcher/graphql', '@karcher/seo', '@karcher/ui'],
   images: {
+    // Next.js refuses to optimize images from private IPs; allow it only for a local Vendure in dev.
+    dangerouslyAllowLocalIP: ['localhost', '127.0.0.1'].includes(vendureAssets.hostname),
     localPatterns: [{ pathname: '/api/media/file/**' }],
     remotePatterns: [
       {

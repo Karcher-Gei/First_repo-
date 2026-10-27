@@ -81,7 +81,7 @@ async function ProductCarousel({ block }: { block: ProductCarouselBlock }) {
       <h2 className="mb-4 text-xl font-black uppercase">{block.title}</h2>
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
         {variants.map(variant => (
-          <ProductCard key={variant.id} variant={variant} />
+          <ProductCard key={variant.id} product={variant.product} priceWithTax={variant.priceWithTax} />
         ))}
       </div>
     </section>

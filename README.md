@@ -72,6 +72,27 @@ field, run `pnpm --filter @karcher/server migration:generate <name>`, review the
 A request whose slug or category differs from the canonical one gets a permanent redirect to the canonical URL, as PrestaShop
 does today (Next.js sends 308 where PrestaShop sends 301; Google treats them the same). Products created after the migration need a `legacyId` (SEO tab in the dashboard) to get a URL.
 
+## Shopping and account pages
+
+| Route                                                                        | What it does                                                                             |
+| ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `/panier`                                                                    | Cart; the header count comes from `/panier/nombre`, so catalog pages stay cacheable      |
+| `/commande`                                                                  | Checkout: contact, address (governorate), shipping, payment                              |
+| `/commande/paiement`                                                         | Konnect failure URL (`?echec=1`) and retry for an unpaid order                           |
+| `/commande/confirmation/{code}`                                              | Konnect success URL; refreshes until the webhook has settled the payment                 |
+| `/compte`, `/compte/commandes`, `/compte/adresses`                           | Profile, password, e-mail, order history, addresses                                      |
+| `/compte/connexion`, `/compte/inscription`, `/compte/mot-de-passe-oublie`    | Sign in, register, request a password reset                                              |
+| `/compte/verification`, `/compte/mot-de-passe`, `/compte/verification-email` | Links of Vendure's e-mails; each asks for a click, so mail scanners cannot use the token |
+| `/devis`                                                                     | Quote request for one product (`?produit=&variante=`) or the cart (`?panier=1`)          |
+| `/garantie`                                                                  | Warranty registration                                                                    |
+
+The shopper's Vendure session token lives in the httpOnly `kgei_session` cookie (`src/lib/session.ts`); every cart,
+checkout and account change is a Server Action. Category pages filter with `?q=` (facet value ids), sort with
+`?order=` and page with `?page=`, PrestaShop's parameter names, which `robots.txt` already handles.
+
+In dev the checkout also offers Vendure's test payment method, which settles at once. To try the Konnect flow
+without Konnect, point `KONNECT_API_URL` in `apps/server/.env` at a mock of its API.
+
 ## Conventions
 
 - TypeScript strict everywhere.
@@ -79,12 +100,16 @@ does today (Next.js sends 308 where PrestaShop sends 301; Google treats them the
 - URLs are built and parsed only in `packages/seo`.
 - Shop API documents are written with `graphql(...)` from `@karcher/graphql`; their types come from `pnpm codegen`
   and the generated files in `packages/graphql/src/generated` are committed, so builds never need a running server.
+  Types are matched to the exact text of each document: format a file before running `pnpm codegen`, not after.
 - Prices are integers in millimes (TND has 3 decimals; see `TndMoneyStrategy`).
 
 ## Not done yet
 
-The scaffold covers the structure, the URL layer and the plugin APIs. Still to build, per the migration plan:
-cart and checkout pages, the Konnect checkout flow in the storefront (the server side is ready), quote and warranty
-forms, account pages, facet filters, email templates in French, the PrestaShop -> Vendure import script, and
-production deployment. Check `apps/server/src/plugins/konnect-payment/types.ts` against Konnect's API docs before
-going live.
+Still to build, per the migration plan: e-mail templates in French, the PrestaShop -> Vendure import script, and
+production deployment. Before going live:
+
+- Check `apps/server/src/plugins/konnect-payment/types.ts` against Konnect's API docs; the flow is tested only
+  against a local mock of the same shapes.
+- Set the real delivery prices (the `standard` shipping method is free until then).
+- Clear the storefront's cached catalog data when products change in Vendure; today a change shows up within
+  5 minutes (`revalidate` in `src/lib/vendure.ts`).

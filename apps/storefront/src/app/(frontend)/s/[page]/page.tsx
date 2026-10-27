@@ -67,7 +67,7 @@ async function CollectionGrid({ slug }: { slug: string }) {
   return (
     <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
       {items.map(variant => (
-        <ProductCard key={variant.id} variant={variant} />
+        <ProductCard key={variant.id} product={variant.product} priceWithTax={variant.priceWithTax} />
       ))}
     </div>
   );

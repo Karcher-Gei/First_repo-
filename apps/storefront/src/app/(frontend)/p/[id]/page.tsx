@@ -1,9 +1,11 @@
 import { breadcrumbJsonLd, categoryPath, productJsonLd } from '@karcher/seo';
-import { Button, Price } from '@karcher/ui';
+import { Price } from '@karcher/ui';
 import type { Metadata } from 'next';
 import Image from 'next/image';
+import Link from 'next/link';
 import { permanentRedirect } from 'next/navigation';
 
+import { AddToCartForm } from '@/components/cart';
 import { productHref } from '@/lib/paths';
 import { PRODUCT_BY_LEGACY_ID } from '@/lib/queries';
 import { redirectOrNotFound } from '@/lib/redirects';
@@ -104,8 +106,10 @@ export default async function ProductPage({ params, searchParams }: Props) {
           <>
             <p className="text-sm text-ink-muted">Réf. {variant.sku}</p>
             <Price value={variant.priceWithTax} />
-            {/* TODO(Features phase): add-to-cart and quote request (QuotesPlugin) as server actions */}
-            <Button disabled={variant.stockLevel === 'OUT_OF_STOCK'}>Ajouter au panier</Button>
+            <AddToCartForm variantId={variant.id} disabled={variant.stockLevel === 'OUT_OF_STOCK'} />
+            <Link href={`/devis?produit=${product.id}&variante=${variant.id}`} className="inline-block text-sm font-semibold underline">
+              Demander un devis
+            </Link>
           </>
         ) : null}
         <div className="space-y-3 leading-relaxed" dangerouslySetInnerHTML={{ __html: product.description }} />

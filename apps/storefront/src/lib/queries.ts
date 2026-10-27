@@ -1,8 +1,4 @@
-import {
-  graphql,
-  type ProductSummaryFragment,
-  type VariantSummaryFragment,
-} from '@karcher/graphql';
+import { graphql, type ProductSummaryFragment } from '@karcher/graphql';
 
 /*
  * Shop API documents. Their result and variable types are generated from the Vendure schema:
@@ -10,7 +6,6 @@ import {
  */
 
 export type ProductSummary = ProductSummaryFragment;
-export type VariantSummary = VariantSummaryFragment;
 
 graphql(`
   fragment ProductSummary on Product {
@@ -86,10 +81,67 @@ export const PRODUCT_BY_LEGACY_ID = graphql(`
 `);
 
 export const COLLECTION_BY_LEGACY_ID = graphql(`
-  query CollectionByLegacyId($legacyId: Float!, $take: Int!) {
+  query CollectionByLegacyId($legacyId: Float!) {
     collections(options: { take: 1, filter: { legacyId: { eq: $legacyId } } }) {
       items {
-        ...CollectionWithProducts
+        id
+        name
+        slug
+        description
+        customFields {
+          legacyId
+        }
+      }
+    }
+  }
+`);
+
+/** Every facet value in a category with its count, to list the filters. */
+export const CATEGORY_FACETS = graphql(`
+  query CategoryFacets($collectionId: ID!) {
+    search(input: { collectionId: $collectionId, groupByProduct: true, take: 0 }) {
+      facetValues {
+        count
+        facetValue {
+          id
+          name
+          facet {
+            id
+            name
+          }
+        }
+      }
+    }
+  }
+`);
+
+/** One page of a category with the shopper's filters and sort applied. */
+export const CATEGORY_PAGE = graphql(`
+  query CategoryPage($input: SearchInput!) {
+    search(input: $input) {
+      totalItems
+      items {
+        productId
+        priceWithTax {
+          ... on SinglePrice {
+            value
+          }
+          ... on PriceRange {
+            min
+            max
+          }
+        }
+      }
+    }
+  }
+`);
+
+// Search results carry no custom fields, which product URLs are built from.
+export const PRODUCTS_BY_IDS = graphql(`
+  query ProductsByIds($ids: [String!]!, $take: Int!) {
+    products(options: { take: $take, filter: { id: { in: $ids } } }) {
+      items {
+        ...ProductSummary
       }
     }
   }

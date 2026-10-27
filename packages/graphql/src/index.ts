@@ -55,13 +55,14 @@ export async function vendureFetch<TResult, TVariables>(
     },
     body: JSON.stringify({ query: document.toString(), variables }),
   });
-  if (!response.ok) {
-    throw new VendureError(`Vendure responded ${response.status} ${response.statusText}`);
-  }
-  const body = (await response.json()) as {
+  const body = (await response.json().catch(() => ({}))) as {
     data?: TResult;
     errors?: { message: string; extensions?: Record<string, unknown> }[];
   };
+  // GraphQL validation errors come with a 400 and say what is wrong in `errors`.
+  if (!response.ok && !body.errors?.length) {
+    throw new VendureError(`Vendure responded ${response.status} ${response.statusText}`);
+  }
   if (body.errors?.length) {
     throw new VendureError(body.errors.map((e) => e.message).join('; '), body.errors);
   }
