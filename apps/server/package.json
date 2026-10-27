@@ -38,8 +38,14 @@
   },
   "devDependencies": {
     "@karcher/config": "workspace:*",
+    "@tanstack/react-query": "^5.105.0",
     "@types/node": "^24.0.0",
+    "@types/react": "^19.2.14",
     "@vendure/cli": "3.8.1",
+    "gql.tada": "^1.11.4",
+    "lucide-react": "^0.577.0",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
     "typescript": "5.9.3",
     "vite": "^7.3.1"
   }

@@ -71,6 +71,7 @@ const adminSchema = gql`
     providers: [QuoteService],
     shopApiExtensions: { schema: shopSchema, resolvers: [QuoteShopResolver] },
     adminApiExtensions: { schema: adminSchema, resolvers: [QuoteAdminResolver] },
+    dashboard: './dashboard/index.tsx',
     compatibility: '^3.0.0',
 })
 export class QuotesPlugin {}

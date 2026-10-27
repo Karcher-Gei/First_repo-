@@ -57,6 +57,7 @@ const adminSchema = gql`
     providers: [FormsService],
     shopApiExtensions: { schema: shopSchema, resolvers: [FormsShopResolver] },
     adminApiExtensions: { schema: adminSchema, resolvers: [FormsAdminResolver] },
+    dashboard: './dashboard/index.tsx',
     compatibility: '^3.0.0',
 })
 export class FormsPlugin {}

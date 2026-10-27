@@ -57,6 +57,7 @@ const adminSchema = gql`
     providers: [WarrantyService],
     shopApiExtensions: { schema: shopSchema, resolvers: [WarrantyShopResolver] },
     adminApiExtensions: { schema: adminSchema, resolvers: [WarrantyAdminResolver] },
+    dashboard: './dashboard/index.tsx',
     compatibility: '^3.0.0',
 })
 export class WarrantyPlugin {}

@@ -66,12 +66,30 @@ importers:
       '@karcher/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@tanstack/react-query':
+        specifier: ^5.105.0
+        version: 5.105.0(@types/react@19.2.14)(react@19.2.6)
       '@types/node':
         specifier: ^24.0.0
         version: 24.19.2
+      '@types/react':
+        specifier: ^19.2.14
+        version: 19.2.14
       '@vendure/cli':
         specifier: 3.8.1
         version: 3.8.1(@types/node@24.19.2)(jiti@2.7.0)(lightningcss@1.32.0)(sass@1.77.4)(tsx@4.23.15)(yaml@2.9.1)
+      gql.tada:
+        specifier: ^1.11.4
+        version: 1.11.4(graphql@16.14.2)(typescript@5.9.3)
+      lucide-react:
+        specifier: ^0.577.0
+        version: 0.577.0(react@19.2.6)
+      react:
+        specifier: ^19.2.6
+        version: 19.2.6
+      react-dom:
+        specifier: ^19.2.6
+        version: 19.2.6(react@19.2.6)
       typescript:
         specifier: 5.9.3
         version: 5.9.3
