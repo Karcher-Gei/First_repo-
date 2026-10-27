@@ -3,6 +3,8 @@ export interface KonnectPluginOptions {
     receiverWalletId: string;
     /** Use api.sandbox.konnect.network instead of the live API. */
     sandbox: boolean;
+    /** Overrides the API base URL, e.g. a local mock for end-to-end tests. */
+    apiUrl?: string;
     /** Public URL of this Vendure server; Konnect calls `${serverPublicUrl}/konnect/webhook`. */
     serverPublicUrl: string;
     /** Public URL of the storefront, for the success and failure redirects. */

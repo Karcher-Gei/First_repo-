@@ -6,6 +6,7 @@ import {
     OrderService,
     RequestContext,
     RequestContextService,
+    TransactionalConnection,
     UserInputError,
 } from '@vendure/core';
 
@@ -22,6 +23,7 @@ export class KonnectService {
         private readonly activeOrderService: ActiveOrderService,
         private readonly orderService: OrderService,
         private readonly requestContextService: RequestContextService,
+        private readonly connection: TransactionalConnection,
     ) {
         this.client = new KonnectClient(options);
     }
@@ -58,21 +60,24 @@ export class KonnectService {
     async handleWebhook(paymentRef: string): Promise<void> {
         const payment = await this.client.getPayment(paymentRef);
         const ctx = await this.requestContextService.create({ apiType: 'admin' });
-        const order = await this.orderService.findOneByCode(ctx, payment.orderId);
-        if (!order) {
-            Logger.warn(`Webhook for unknown order ${payment.orderId} (ref ${paymentRef})`, loggerCtx);
-            return;
-        }
-        if (order.state !== 'ArrangingPayment') {
-            Logger.info(`Order ${order.code} is already ${order.state}; webhook ignored`, loggerCtx);
-            return;
-        }
-        const result = await this.orderService.addPaymentToOrder(ctx, order.id, {
-            method: KONNECT_METHOD_CODE,
-            metadata: { paymentRef },
+        // A controller has no @Transaction(); OrderService.addPaymentToOrder requires one.
+        await this.connection.withTransaction(ctx, async txCtx => {
+            const order = await this.orderService.findOneByCode(txCtx, payment.orderId);
+            if (!order) {
+                Logger.warn(`Webhook for unknown order ${payment.orderId} (ref ${paymentRef})`, loggerCtx);
+                return;
+            }
+            if (order.state !== 'ArrangingPayment') {
+                Logger.info(`Order ${order.code} is already ${order.state}; webhook ignored`, loggerCtx);
+                return;
+            }
+            const result = await this.orderService.addPaymentToOrder(txCtx, order.id, {
+                method: KONNECT_METHOD_CODE,
+                metadata: { paymentRef },
+            });
+            if (isGraphQlErrorResult(result)) {
+                Logger.error(`Could not add Konnect payment to ${order.code}: ${result.message}`, loggerCtx);
+            }
         });
-        if (isGraphQlErrorResult(result)) {
-            Logger.error(`Could not add Konnect payment to ${order.code}: ${result.message}`, loggerCtx);
-        }
     }
 }

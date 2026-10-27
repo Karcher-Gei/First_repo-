@@ -13,7 +13,7 @@ export class KonnectClient {
     private readonly baseUrl: string;
 
     constructor(private readonly options: KonnectPluginOptions) {
-        this.baseUrl = options.sandbox ? SANDBOX_API : LIVE_API;
+        this.baseUrl = options.apiUrl || (options.sandbox ? SANDBOX_API : LIVE_API);
     }
 
     async initPayment(input: KonnectInitPaymentInput): Promise<KonnectInitPaymentResponse> {

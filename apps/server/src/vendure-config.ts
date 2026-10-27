@@ -117,6 +117,7 @@ export const config: VendureConfig = {
             apiKey: process.env.KONNECT_API_KEY ?? '',
             receiverWalletId: process.env.KONNECT_WALLET_ID ?? '',
             sandbox: process.env.KONNECT_SANDBOX !== 'false',
+            apiUrl: process.env.KONNECT_API_URL || undefined,
             serverPublicUrl,
             storefrontUrl,
         }),
