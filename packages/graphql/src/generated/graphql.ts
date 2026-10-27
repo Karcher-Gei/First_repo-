@@ -589,7 +589,7 @@ export type CollectionByLegacyIdQueryVariables = Exact<{
 }>;
 
 
-export type CollectionByLegacyIdQuery = { collections: { items: Array<{ id: string, name: string, slug: string, description: string, featuredAsset: { preview: string } | null, customFields: { legacyId: number | null, metaTitle: string | null, metaDescription: string | null } | null, parent: { id: string, name: string, slug: string, parent: { id: string, name: string, slug: string, featuredAsset: { preview: string } | null, customFields: { legacyId: number | null } | null } | null, featuredAsset: { preview: string } | null, customFields: { legacyId: number | null } | null } | null, children: Array<{ position: number, id: string, name: string, slug: string, featuredAsset: { preview: string } | null, customFields: { legacyId: number | null } | null }> | null }> } };
+export type CollectionByLegacyIdQuery = { collections: { items: Array<{ id: string, name: string, slug: string, description: string, featuredAsset: { preview: string } | null, customFields: { legacyId: number | null, metaTitle: string | null, metaDescription: string | null, filterFacetIds: Array<string> | null } | null, parent: { id: string, name: string, slug: string, parent: { id: string, name: string, slug: string, featuredAsset: { preview: string } | null, customFields: { legacyId: number | null } | null } | null, featuredAsset: { preview: string } | null, customFields: { legacyId: number | null } | null } | null, children: Array<{ position: number, id: string, name: string, slug: string, featuredAsset: { preview: string } | null, customFields: { legacyId: number | null } | null }> | null }> } };
 
 export type BrandsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1601,6 +1601,7 @@ export const CollectionByLegacyIdDocument = new TypedDocumentString(`
         legacyId
         metaTitle
         metaDescription
+        filterFacetIds
       }
       parent {
         ...CategoryLink
