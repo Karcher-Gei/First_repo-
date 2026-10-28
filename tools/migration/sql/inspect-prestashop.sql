@@ -3,6 +3,12 @@
 -- and no query returns customer personal data: only structure, settings and counts.
 -- Tables are assumed to be prefixed "ka_"; if the first query shows another prefix, replace ka_ everywhere.
 -- Send back the result of each numbered query (phpMyAdmin: Export the results, or a screenshot).
+--
+-- First make the shop's database the active one (else MySQL looks in information_schema and answers
+-- "Table inconnue"): click it in phpMyAdmin's left panel before opening the SQL tab, or keep this line
+-- with its name (on karcher-gei.tn: qmrfdnuq_karcher_DB_2022).
+USE `qmrfdnuq_karcher_DB_2022`;
+SELECT DATABASE() AS active_database;
 
 -- 1. Every table with its row count and size: confirms the prefix and the tables the import reads.
 SELECT table_name, table_rows, ROUND((data_length + index_length) / 1024 / 1024, 1) AS size_mb
