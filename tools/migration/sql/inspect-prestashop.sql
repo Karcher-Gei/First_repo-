@@ -68,8 +68,11 @@ SELECT * FROM (
     (SELECT COUNT(*) FROM ka_category_product cp WHERE cp.id_category = c.id_category) AS products
   FROM ka_category c
   JOIN ka_category_lang cl ON cl.id_category = c.id_category
-    AND cl.id_lang = (SELECT value FROM ka_configuration WHERE name = 'PS_LANG_DEFAULT' LIMIT 1)
-  GROUP BY c.id_category
+    AND cl.id_shop = 1
+    AND cl.id_lang = COALESCE(
+      (SELECT value FROM ka_configuration WHERE name = 'PS_LANG_DEFAULT' LIMIT 1),
+      (SELECT MIN(id_lang) FROM ka_lang)
+    )
 ) r ORDER BY level_depth, position;
 
 -- 6. Discounts by kind (only those for every visitor, today, are migrated as sales).
