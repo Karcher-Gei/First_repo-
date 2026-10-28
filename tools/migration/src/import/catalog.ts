@@ -442,7 +442,10 @@ async function importImages(
       altOf.set(asset.id, asset.customFields.alt);
     }
   }
-  for (const image of images) {
+  for (const [index, image] of images.entries()) {
+    if (index > 0 && index % 100 === 0) {
+      console.log(`  images: ${index} / ${images.length}`);
+    }
     const alt = orNull(image.legend);
     const assetId = result.get(image.id_image);
     if (assetId) {
@@ -487,8 +490,22 @@ async function readImageFile(source: ImageSource, relative: string): Promise<Uin
     return readFile(path.join(source.dir, relative)).catch(() => null);
   }
   const url = new URL(relative, `${source.baseUrl.replace(/\/$/, '')}/`);
-  const response = await fetch(url).catch(() => null);
-  return response?.ok ? new Uint8Array(await response.arrayBuffer()) : null;
+  // Thousands of downloads from the live shop: a stalled one is abandoned, a failed one retried.
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const response = await fetch(url, { signal: AbortSignal.timeout(30_000) });
+      if (response.status === 404) {
+        return null;
+      }
+      if (response.ok) {
+        return new Uint8Array(await response.arrayBuffer());
+      }
+    } catch {
+      // Network error or timeout: try again.
+    }
+    await new Promise((resolve) => setTimeout(resolve, attempt * 2000));
+  }
+  return null;
 }
 
 interface ExistingProduct {

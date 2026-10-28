@@ -121,7 +121,8 @@ pnpm --filter @karcher/storefront import:cms       # CMS pages and fixed pages' 
 pnpm --filter @karcher/migration check:urls        # every URL of the inventory against the storefront
 ```
 
-The Vendure server must be running, on a database prepared with `migrate` and `setup:channel`.
+The Vendure server must be running, on a database prepared with `migrate` and `setup:channel`. Step by step on
+Windows, with the real dump: [docs/migration-locale.md](docs/migration-locale.md).
 
 | PrestaShop                          | Vendure / Payload                                                                     |
 | ----------------------------------- | ------------------------------------------------------------------------------------- |
@@ -247,7 +248,11 @@ simply expires after 5 minutes.
 
 Still to do, per the migration plan: production deployment. Before going live:
 
-- Run the import on the real database dump and review `out/import-report.txt`; `check:urls` must pass.
+- Run the import on the real database dump ([docs/migration-locale.md](docs/migration-locale.md)) and review
+  `out/import-report.txt`; `check:urls` must pass.
+- Product documents: the 32 PrestaShop attachments (manuals, safety data sheets) are not imported yet.
+- Homepage visuals: the Revolution Slider content is not migrated; new visuals go in Payload (Homepage).
+- Set an SMTP transport for e-mails (`vendure-config.ts`).
 - Check `apps/server/src/plugins/konnect-payment/types.ts` against Konnect's API docs; the flow is tested only
   against a local mock of the same shapes.
 - Set the real delivery prices (the `standard` shipping method is free until then).
