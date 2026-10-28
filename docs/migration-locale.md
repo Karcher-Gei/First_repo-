@@ -9,7 +9,8 @@ Commands are for PowerShell, from the repository folder. Expect about an hour th
 
 ## 1. Prerequisites (once)
 
-- **Node.js 24** (nodejs.org, "LTS" installer), then `corepack enable` in an administrator PowerShell.
+- **Node.js 24.22.1 or later** (nodejs.org, "LTS" installer), then `corepack enable` in an administrator
+  PowerShell. `node -v` must show it; an older Node earlier in the PATH (`where.exe node`) must be removed.
 - **Docker Desktop**, for PostgreSQL (the new site's database). Without Docker: install PostgreSQL 17, create the
   user `karcher` (password `karcher`) and the databases `vendure` and `payload` owned by it.
 - **Git**, and the repository on the `boot-and-migrations` branch:
@@ -42,6 +43,21 @@ pnpm --filter @karcher/server setup:channel
 
 Check: http://localhost:3000/dashboard opens (login `superadmin` / `change-me`, from `apps/server/.env`) and
 http://localhost:3001 shows the empty shop.
+
+### "authentification par mot de passe échouée pour l'utilisateur « karcher »"
+
+A message in French comes from a PostgreSQL installed on Windows, not from Docker's: it answers on port 5432
+and has no `karcher` user. Either stop it (Services → postgresql → Stop) and run `docker compose up -d postgres`,
+or use it: create the user and the two databases with the `postgres` password chosen at its installation.
+
+```powershell
+$psql = (Get-ChildItem "C:\Program Files\PostgreSQL\*\bin\psql.exe" | Select-Object -Last 1).FullName
+& $psql -U postgres -c "CREATE ROLE karcher LOGIN PASSWORD 'karcher';"
+& $psql -U postgres -c "CREATE DATABASE vendure OWNER karcher;"
+& $psql -U postgres -c "CREATE DATABASE payload OWNER karcher;"
+```
+
+"already exists" on the first line: `& $psql -U postgres -c "ALTER ROLE karcher PASSWORD 'karcher';"` instead.
 
 ## 3. Point the import at your dump
 
