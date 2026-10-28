@@ -9,7 +9,7 @@ import { Breadcrumbs, type Crumb } from '@/components/Breadcrumbs';
 import { ProductListing } from '@/components/ProductListing';
 import { loadListing } from '@/lib/catalog';
 import { categoryQuery, isFiltered, parseCategoryParams } from '@/lib/category-params';
-import { categoryHref } from '@/lib/paths';
+import { categoryHref, categoryLabel } from '@/lib/paths';
 import { COLLECTION_BY_LEGACY_ID } from '@/lib/queries';
 import { redirectOrNotFound } from '@/lib/redirects';
 import { absoluteUrl } from '@/lib/site';
@@ -37,12 +37,12 @@ type Collection = NonNullable<Awaited<ReturnType<typeof loadCollection>>>;
 /** Home, then the ancestors (Vendure's hidden root collection has no legacyId and drops out), then this category. */
 function crumbsOf(collection: Collection): Crumb[] {
   const ancestors = [collection.parent?.parent, collection.parent].flatMap((c) =>
-    c && categoryHref(c) ? [{ name: c.name, href: categoryHref(c) }] : [],
+    c && categoryHref(c) ? [{ name: categoryLabel(c), href: categoryHref(c) }] : [],
   );
   return [
     { name: 'Accueil', href: '/' },
     ...ancestors,
-    { name: collection.name, href: categoryHref(collection) },
+    { name: categoryLabel(collection), href: categoryHref(collection) },
   ];
 }
 
@@ -97,7 +97,9 @@ export default async function CategoryPage({ params, searchParams }: Props) {
     .sort((a, b) => a.position - b.position)
     .flatMap((child) => {
       const href = categoryHref(child);
-      return href ? [{ name: child.name, href, image: child.featuredAsset?.preview ?? null }] : [];
+      return href
+        ? [{ name: categoryLabel(child), href, image: child.featuredAsset?.preview ?? null }]
+        : [];
     });
   const jsonLd = breadcrumbJsonLd(
     crumbs.map((crumb) => ({ name: crumb.name, url: absoluteUrl(crumb.href ?? path) })),

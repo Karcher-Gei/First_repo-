@@ -3,13 +3,16 @@ import { CustomFieldConfig, LanguageCode } from '@vendure/core';
 /**
  * PrestaShop identifiers kept on migrated entities, so every old URL can be resolved by ID
  * exactly as PrestaShop does: /{category}/{id}-{slug}-{ean13}.html, /{id}-{slug}, /{imageId}-{size}/{slug}.jpg,
- * and brands (values of the "marque" facet) at /{id}_{slug}
+ * and brands (values of the "marque" facet) at /brand/{id}-{slug}. The URL keeps PrestaShop's slug
+ * (urlSlug): Vendure makes slugs unique, and two PrestaShop categories may share one.
  */
 declare module '@vendure/core/dist/entity/custom-entity-fields' {
     interface CustomProductFields {
         legacyId: number | null;
         ean13: string | null;
         urlCategory: string | null;
+        urlSlug: string | null;
+        defaultCategoryId: number | null;
     }
     interface CustomProductFieldsTranslation {
         metaTitle: string | null;
@@ -17,10 +20,13 @@ declare module '@vendure/core/dist/entity/custom-entity-fields' {
     }
     interface CustomCollectionFields {
         legacyId: number | null;
+        urlSlug: string | null;
+        hideFromMenu: boolean;
     }
     interface CustomCollectionFieldsTranslation {
         metaTitle: string | null;
         metaDescription: string | null;
+        menuLabel: string | null;
     }
     interface CustomAssetFields {
         legacyImageId: number | null;
@@ -35,6 +41,29 @@ declare module '@vendure/core/dist/entity/custom-entity-fields' {
         metaDescription: string | null;
     }
 }
+
+/** The slug of the URL, when it must differ from Vendure's own (unique) slug. */
+const urlSlugField: CustomFieldConfig = {
+    name: 'urlSlug',
+    type: 'string',
+    nullable: true,
+    public: true,
+    label: [
+        { languageCode: LanguageCode.fr, value: 'Slug de l’URL' },
+        { languageCode: LanguageCode.en, value: 'URL slug' },
+    ],
+    description: [
+        {
+            languageCode: LanguageCode.fr,
+            value: 'Le slug de l’adresse de la page, repris de PrestaShop. Vide : le slug ci-dessus.',
+        },
+        {
+            languageCode: LanguageCode.en,
+            value: 'Slug of the page URL, kept from PrestaShop (two categories may share one). Empty: the slug above.',
+        },
+    ],
+    ui: { tab: 'SEO' },
+};
 
 /** Meta title and description, migrated word for word from PrestaShop; the page falls back to the name and description. */
 const seoCustomFields: CustomFieldConfig[] = [
@@ -100,6 +129,21 @@ export const productCustomFields: CustomFieldConfig[] = [
         ],
         ui: { tab: 'SEO' },
     },
+    urlSlugField,
+    {
+        name: 'defaultCategoryId',
+        type: 'int',
+        nullable: true,
+        public: true,
+        label: [
+            { languageCode: LanguageCode.fr, value: 'Catégorie principale (ID PrestaShop)' },
+            { languageCode: LanguageCode.en, value: 'Main category (PrestaShop ID)' },
+        ],
+        description: [
+            { languageCode: LanguageCode.en, value: 'The category of the breadcrumb and of the URL.' },
+        ],
+        ui: { tab: 'SEO' },
+    },
     ...seoCustomFields,
 ];
 
@@ -114,6 +158,40 @@ export const collectionCustomFields: CustomFieldConfig[] = [
             { languageCode: LanguageCode.en, value: 'PrestaShop ID' },
         ],
         ui: { tab: 'SEO' },
+    },
+    urlSlugField,
+    {
+        name: 'menuLabel',
+        type: 'localeString',
+        nullable: true,
+        public: true,
+        label: [
+            { languageCode: LanguageCode.fr, value: 'Nom dans le menu' },
+            { languageCode: LanguageCode.en, value: 'Menu label' },
+        ],
+        description: [
+            {
+                languageCode: LanguageCode.fr,
+                value: 'Nom court affiché dans le menu et le fil d’Ariane. Vide : le nom de la catégorie.',
+            },
+        ],
+    },
+    {
+        name: 'hideFromMenu',
+        type: 'boolean',
+        nullable: false,
+        defaultValue: false,
+        public: true,
+        label: [
+            { languageCode: LanguageCode.fr, value: 'Cacher du menu' },
+            { languageCode: LanguageCode.en, value: 'Hide from menu' },
+        ],
+        description: [
+            {
+                languageCode: LanguageCode.fr,
+                value: 'La page de la catégorie reste en ligne, mais n’apparaît ni dans le menu ni dans les tuiles de catégories.',
+            },
+        ],
     },
     ...seoCustomFields,
 ];

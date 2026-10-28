@@ -10,7 +10,7 @@ import { ProductCard } from '@/components/ProductCard';
 import { ProductGallery } from '@/components/ProductGallery';
 import { ProductRail } from '@/components/ProductRail';
 import { ServiceHighlights } from '@/components/ServiceHighlights';
-import { categoryHref, productHref } from '@/lib/paths';
+import { categoryHref, categoryLabel, productHref } from '@/lib/paths';
 import { COLLECTION_BY_SLUG, PRODUCT_BY_LEGACY_ID } from '@/lib/queries';
 import { redirectOrNotFound } from '@/lib/redirects';
 import { absoluteUrl } from '@/lib/site';
@@ -35,12 +35,16 @@ async function loadProduct(id: string) {
 type Product = NonNullable<Awaited<ReturnType<typeof loadProduct>>>;
 
 /**
- * The category the breadcrumb goes through: the PrestaShop default category the URL is built
- * from when it is one of the product's collections, else the deepest migrated collection.
+ * The category the breadcrumb goes through: the PrestaShop default category when it is one of the
+ * product's collections (by id: two categories can share a slug), else the deepest migrated collection.
  */
 function mainCategory(product: Product) {
   const migrated = product.collections.filter((c) => categoryHref(c));
+  const defaultId = product.customFields?.defaultCategoryId;
   return (
+    (defaultId != null
+      ? migrated.find((c) => c.customFields?.legacyId === defaultId)
+      : undefined) ??
     migrated.find((c) => c.slug === product.customFields?.urlCategory) ??
     [...migrated].sort((a, b) => b.breadcrumbs.length - a.breadcrumbs.length)[0] ??
     null
@@ -102,9 +106,9 @@ export default async function ProductPage({ params, searchParams }: Props) {
   const crumbs: Crumb[] = [
     { name: 'Accueil', href: '/' },
     ...(category?.parent && categoryHref(category.parent)
-      ? [{ name: category.parent.name, href: categoryHref(category.parent) }]
+      ? [{ name: categoryLabel(category.parent), href: categoryHref(category.parent) }]
       : []),
-    ...(category ? [{ name: category.name, href: categoryHref(category) }] : []),
+    ...(category ? [{ name: categoryLabel(category), href: categoryHref(category) }] : []),
     { name: product.name, href },
   ];
   const images = (
@@ -162,7 +166,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
                   href={categoryHref(category)!}
                   className="text-xs font-bold uppercase tracking-[0.2em] text-ink-muted hover:text-ink"
                 >
-                  {category.name}
+                  {categoryLabel(category)}
                 </Link>
               ) : null}
               <h1 className="font-heading text-4xl font-extrabold leading-[1.02] md:text-5xl">

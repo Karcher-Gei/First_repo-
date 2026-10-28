@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { getCms } from './cms';
-import { categoryHref } from './paths';
+import { categoryHref, categoryLabel } from './paths';
 import { CATEGORY_TREE } from './queries';
 import { shopQuery } from './vendure';
 
@@ -17,24 +17,38 @@ export interface MenuLink {
   url: string;
 }
 
-/** Category menu from Vendure's collection tree; collections without a legacyId have no URL yet and are skipped. */
+/**
+ * Category menu from Vendure's collection tree. Skipped: collections without a legacyId (no URL yet)
+ * and those ticked "Cacher du menu" (selections such as Coup de cœur keep their page).
+ */
 export async function getCategoryMenu(): Promise<MenuCategory[]> {
   const { collections } = await shopQuery(CATEGORY_TREE, {});
   return collections.items.flatMap((collection) => {
     const href = categoryHref(collection);
-    if (!href) {
+    if (!href || collection.customFields?.hideFromMenu) {
       return [];
     }
     const children = [...(collection.children ?? [])]
       .sort((a, b) => a.position - b.position)
       .flatMap((child) => {
         const childHref = categoryHref(child);
-        return childHref
-          ? [{ name: child.name, href: childHref, image: child.featuredAsset?.preview ?? null }]
+        return childHref && !child.customFields?.hideFromMenu
+          ? [
+              {
+                name: categoryLabel(child),
+                href: childHref,
+                image: child.featuredAsset?.preview ?? null,
+              },
+            ]
           : [];
       });
     return [
-      { name: collection.name, href, image: collection.featuredAsset?.preview ?? null, children },
+      {
+        name: categoryLabel(collection),
+        href,
+        image: collection.featuredAsset?.preview ?? null,
+        children,
+      },
     ];
   });
 }

@@ -1,9 +1,9 @@
-import { categoryPath, cmsPath, STATIC_PAGES } from '@karcher/seo';
+import { cmsPath, STATIC_PAGES } from '@karcher/seo';
 import type { MetadataRoute } from 'next';
 
 import { getBrands } from '@/lib/brands';
 import { getCms } from '@/lib/cms';
-import { productHref } from '@/lib/paths';
+import { categoryHref, productHref } from '@/lib/paths';
 import { SITEMAP_COLLECTIONS, SITEMAP_PRODUCTS } from '@/lib/queries';
 import { absoluteUrl } from '@/lib/site';
 import { shopQuery } from '@/lib/vendure';
@@ -22,12 +22,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (let skip = 0; ; skip += take) {
     const { collections } = await shopQuery(SITEMAP_COLLECTIONS, { skip, take });
     for (const collection of collections.items) {
-      const legacyId = collection.customFields?.legacyId;
-      if (legacyId != null) {
-        entries.push({
-          url: absoluteUrl(categoryPath({ id: legacyId, slug: collection.slug })),
-          lastModified: collection.updatedAt,
-        });
+      const href = categoryHref(collection);
+      if (href) {
+        entries.push({ url: absoluteUrl(href), lastModified: collection.updatedAt });
       }
     }
     if (collections.items.length < take) {

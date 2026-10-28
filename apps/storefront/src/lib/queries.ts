@@ -20,8 +20,10 @@ graphql(`
     }
     customFields {
       legacyId
+      urlSlug
       ean13
       urlCategory
+      defaultCategoryId
       quoteOnly
     }
     variants {
@@ -52,6 +54,7 @@ graphql(`
     description
     customFields {
       legacyId
+      urlSlug
     }
     productVariants(options: { take: $take }) {
       totalItems
@@ -96,12 +99,17 @@ export const PRODUCT_BY_LEGACY_ID = graphql(`
           }
           customFields {
             legacyId
+            urlSlug
+            hideFromMenu
+            menuLabel
           }
           parent {
             name
             slug
             customFields {
               legacyId
+              urlSlug
+              menuLabel
             }
           }
         }
@@ -134,6 +142,9 @@ graphql(`
     }
     customFields {
       legacyId
+      urlSlug
+      hideFromMenu
+      menuLabel
     }
   }
 `);
@@ -151,6 +162,8 @@ export const COLLECTION_BY_LEGACY_ID = graphql(`
         }
         customFields {
           legacyId
+          urlSlug
+          menuLabel
           metaTitle
           metaDescription
           filterFacetIds
@@ -302,6 +315,7 @@ export const SITEMAP_PRODUCTS = graphql(`
         updatedAt
         customFields {
           legacyId
+          urlSlug
           ean13
           urlCategory
         }
@@ -318,6 +332,9 @@ export const SITEMAP_COLLECTIONS = graphql(`
         updatedAt
         customFields {
           legacyId
+          urlSlug
+          hideFromMenu
+          menuLabel
         }
       }
     }
@@ -337,6 +354,9 @@ export const CATEGORY_TREE = graphql(`
         }
         customFields {
           legacyId
+          urlSlug
+          hideFromMenu
+          menuLabel
         }
         children {
           id
@@ -348,6 +368,9 @@ export const CATEGORY_TREE = graphql(`
           position
           customFields {
             legacyId
+            urlSlug
+            hideFromMenu
+            menuLabel
           }
         }
       }
