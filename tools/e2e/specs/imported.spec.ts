@@ -67,3 +67,41 @@ test('customers sign in with their PrestaShop password; old MD5 ones are sent to
   await page.goto('/compte/adresses');
   await expect(page.locator('main')).toContainText('12 rue de Marseille');
 });
+
+test('categories sharing a slug keep their PrestaShop URLs', async ({ page }) => {
+  for (const path of ['/14-aspirateurs', '/17-aspirateurs']) {
+    const response = await page.goto(path);
+    expect(response?.status()).toBe(200);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Aspirateurs');
+    await expect(page.locator('link[rel=canonical]')).toHaveAttribute(
+      'href',
+      new RegExp(`${path}$`),
+    );
+  }
+  // The professional one: menu label in the breadcrumb.
+  await expect(page.getByRole('navigation', { name: 'Fil d’Ariane' })).toContainText(
+    'Aspirateurs pro',
+  );
+});
+
+test('the menu keeps PrestaShop labels and leaves out the selections', async ({ page }) => {
+  await page.goto('/');
+  const header = page.locator('header');
+  await expect(header).toContainText('Maison & jardin');
+  await expect(header).toContainText('Aspirateurs pro');
+  await expect(header).not.toContainText('Coup de cœur');
+  // Still a page of its own, behind the homepage carousel.
+  expect((await page.request.get('/19-coup-de-coeur')).status()).toBe(200);
+});
+
+test('replaced categories and inactive products redirect like PrestaShop', async ({ request }) => {
+  const expectations = {
+    '/18-promotions': '/promotions',
+    '/nettoyeurs-haute-pression/103-ancien-modele-k-2.html': '/13-nettoyeurs-haute-pression',
+  };
+  for (const [from, to] of Object.entries(expectations)) {
+    const response = await request.get(from, { maxRedirects: 0 });
+    expect(response.status(), from).toBe(308);
+    expect(response.headers().location).toMatch(new RegExp(`${to}$`));
+  }
+});

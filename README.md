@@ -71,8 +71,8 @@ Both database schemas come from migrations, never from automatic sync:
 | ------------------------------------------------ | ------------------------ | ------------------------------------------------------------ |
 | `/home-garden/867-aspirateur-laveur-fcv-3.html`  | `/p/867`                 | Vendure product `customFields.legacyId`                      |
 | `/12-home-garden`                                | `/c/12`                  | Vendure collection `customFields.legacyId`                   |
-| `/2_karcher` (brand)                             | `/b/2`                   | "marque" facet value `customFields.legacyManufacturerId`     |
-| `/3__fournisseur`, `/fournisseur` (supplier)     | 301 to `/brands`         | no supplier pages                                            |
+| `/brand/2-karcher` (brand)                       | `/b/2`                   | "marque" facet value `customFields.legacyManufacturerId`     |
+| `/supplier/3-karcher-france`, `/fournisseur`     | 301 to `/brands`         | no supplier pages                                            |
 | `/content/62-devenir-revendeur`                  | real route               | Payload page `legacyId`                                      |
 | `/2292-home_default/aspirateur-laveur-fcv-3.jpg` | `/img/2292/home_default` | Vendure asset `customFields.legacyImageId`, 301 to the asset |
 | `/promotions`, `/nous-contacter`, ...            | `/s/{page}`              | fixed list in `packages/seo`                                 |
@@ -125,7 +125,7 @@ The Vendure server must be running, on a database prepared with `migrate` and `s
 
 | PrestaShop                          | Vendure / Payload                                                                     |
 | ----------------------------------- | ------------------------------------------------------------------------------------- |
-| Products, descriptions, meta tags   | Products with `legacyId`, `ean13` (valid EAN-8/13 only), `urlCategory`, SEO fields    |
+| Products, descriptions, meta tags   | Products with `legacyId`, `urlSlug`, `ean13` (EAN-8/13), `urlCategory`, SEO fields    |
 | Prices excluding VAT, tax rules     | Prices including VAT in millimes, one tax category per Tunisian rate (`TVA 7%`...)    |
 | Combinations (`Version`, ...)       | Option groups and variants, each with its SKU, price and stock                        |
 | Features                            | Facets: category filters and product specifications                                   |
@@ -134,6 +134,8 @@ The Vendure server must be running, on a database prepared with `migrate` and `s
 | Specific prices (current, everyone) | Sales: sale price, struck-through `regularPrice`, `saleEndsAt`; listed on /promotions |
 | Date added, units sold              | `addedAt`, `unitsSold` on products: /nouveaux-produits, /meilleures-ventes            |
 | Categories (active, level 2+)       | Collections with the same tree, listing the products assigned in PrestaShop           |
+| Main menu (`novmegamenu`)           | Category `menuLabel`; categories absent from it get `hideFromMenu`                    |
+| Inactive products' redirect         | 301s in the legacy redirects table (to the category or product PrestaShop names)      |
 | Customers (registered, not deleted) | Customers with their PrestaShop password; addresses in Tunisia with the governorate   |
 | CMS pages (active)                  | Payload pages with `legacyId`, HTML converted to rich text                            |
 | Trafic & SEO (`meta`, `meta_lang`)  | Payload: homepage meta tags and the "Pages fixes (SEO)" global                        |
@@ -145,10 +147,19 @@ MD5 hashes cannot be converted; those customers, and accounts inactive in Presta
 for a customer group, a customer, a minimum quantity or a future date (counted or listed in the report), suppliers, carriers, customer groups, newsletter consent and meta keywords (ignored by search
 engines). A fixed page whose friendly URL differs from `STATIC_PAGES` in `packages/seo` is reported in the import report.
 
+URLs and menu: Vendure makes slugs unique (karcher-gei.tn has two `aspirateurs` categories, the second becomes
+`aspirateurs-2`), so `urlSlug` keeps PrestaShop's slug for the URL. The theme's mega menu gives the short labels
+("HOME & GARDEN" for the long SEO name of category 12); categories not in it (Pulvérisateur, Bestsellers, Coup de
+cœur) keep their page but leave the menu. Hand-filled categories the new site computes are not imported but
+redirected: "Promotions" to /promotions (every product on sale), an empty "Bestsellers" to /meilleures-ventes.
+A "Coup de cœur" category replaces the featured products module's collection.
+
 Homepage: the modules PrestaShop shows on its homepage are rebuilt in order between the designed Kärcher
 sections: the image slider (images from `modules/ps_imageslider/images`, next to `img/`), Promotions, "Coup de
 cœur" (the featured products, a collection outside the menu), best sellers, new products. Other modules are
-listed in the import report. `import:cms` writes the homepage only while it has no blocks
+listed in the import report; when none of the standard product modules is there (karcher-gei.tn builds its
+homepage with its theme, Revolution Slider and Visual Composer), the Promotions, Coup de cœur and best sellers
+carousels are exported instead. `import:cms` writes the homepage only while it has no blocks
 (`--replace-homepage` to rebuild it); staff then arrange the blocks in Payload. Uploaded images go to
 `apps/storefront/media`, which needs persistent storage in production.
 
@@ -207,7 +218,7 @@ have a URL at once and never take the URL of an old PrestaShop item.
 
 Products with "Prix sur devis" ticked (custom field `quoteOnly`) never publish their price or stock: the
 import ticks it for the PrestaShop "Professionnel" category tree (or the categories in
-`PS_QUOTE_ONLY_CATEGORY_IDS`), and staff tick it in the dashboard for new products. The rule is enforced by
+`PS_QUOTE_ONLY_CATEGORY_IDS`), less the subtrees in `PS_QUOTE_ONLY_EXCLUDED_CATEGORY_IDS`, and staff tick it in the dashboard for new products. The rule is enforced by
 Vendure (`apps/server/src/plugins/quotes/quote-only.ts`), not only by the pages, since the Shop API is public:
 
 - the Shop API and the search index give a price of 0 and a stock level of `ON_REQUEST`; only the dashboard

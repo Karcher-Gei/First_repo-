@@ -52,12 +52,27 @@ export interface PsProduct {
   /** DATETIME as text (see prestaShopDate). */
   date_add: string | null;
   units_sold: number;
+  /** What an inactive product's URL does: '404', '301-category', '302-product'... */
+  redirect_type: string;
+  /** Target of that redirect (a product or a category id); 0: the default category. */
+  id_type_redirected: number;
   category_slug: string;
   name: string;
   link_rewrite: string;
   description: string | null;
   meta_title: string | null;
   meta_description: string | null;
+}
+
+/** An entry of the main menu (Nov mega menu module): a category, a CMS page or a link. */
+export interface PsMenuEntry {
+  id_novmegamenu: number;
+  id_parent: number;
+  type: string;
+  /** The category or CMS page id, as text. */
+  value: string;
+  active: number;
+  title: string;
 }
 
 export interface PsCategoryProduct {
@@ -242,7 +257,8 @@ export class PrestaShopReader {
       `SELECT p.id_product, p.id_tax_rules_group, p.reference, p.ean13, p.price, p.active,
               p.id_category_default, p.id_manufacturer, cl.link_rewrite AS category_slug, pl.name, pl.link_rewrite,
               pl.description, pl.meta_title, pl.meta_description,
-              CAST(p.date_add AS CHAR) AS date_add, COALESCE(s.quantity, 0) AS units_sold
+              CAST(p.date_add AS CHAR) AS date_add, COALESCE(s.quantity, 0) AS units_sold,
+              p.redirect_type, p.id_type_redirected
        FROM ${this.t('product')} p
        LEFT JOIN ${this.t('product_sale')} s ON s.id_product = p.id_product
        JOIN ${this.t('product_lang')} pl
@@ -381,6 +397,17 @@ export class PrestaShopReader {
        WHERE hs.id_shop = ? AND s.active = 1
        ORDER BY s.position`,
       [this.cfg.langId, this.cfg.shopId],
+    );
+  }
+
+  /** The theme's mega menu (novmegamenu), or none when the module is not installed. */
+  menuEntries(): Promise<PsMenuEntry[]> {
+    return this.moduleRows<PsMenuEntry>(
+      `SELECT m.id_novmegamenu, m.id_parent, m.type, m.value, m.active, TRIM(l.title) AS title
+       FROM ${this.t('novmegamenu')} m
+       JOIN ${this.t('novmegamenu_lang')} l ON l.id_novmegamenu = m.id_novmegamenu AND l.id_lang = ?
+       ORDER BY m.level, m.position`,
+      [this.cfg.langId],
     );
   }
 

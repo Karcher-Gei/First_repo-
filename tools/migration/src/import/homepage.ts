@@ -146,7 +146,11 @@ export async function exportHomepage(
   slideImages: ImageSource,
   report: Report,
 ): Promise<HomepageExport> {
-  const [modules, config] = await Promise.all([ps.homeModules(), ps.configuration(LIMIT_KEYS)]);
+  const [modules, config, categories] = await Promise.all([
+    ps.homeModules(),
+    ps.configuration(LIMIT_KEYS),
+    ps.categories(),
+  ]);
   const sections: HomepageSection[] = [];
   for (const module of modules.filter((m) => m.active === 1)) {
     if (module.name === 'ps_imageslider') {
@@ -175,9 +179,31 @@ export async function exportHomepage(
       `Homepage module "${module.name}" has no equivalent: rebuild its content in Payload (Homepage)`,
     );
   }
+  // A theme that builds the homepage itself (novthemeconfig, Revolution Slider...) leaves none of the
+  // standard modules: start from the shop's own selections instead.
+  if (!sections.some((section) => section.kind === 'carousel')) {
+    const featured = categories.some((c) => c.active === 1 && c.link_rewrite === FEATURED_SLUG);
+    sections.push(
+      ...defaultCarousels.filter((c) => featured || c.collectionSlug !== FEATURED_SLUG),
+    );
+    report.warn(
+      'No standard product module on the homepage: default carousels exported (Promotions, Coup de cœur, Meilleures ventes); arrange them in Payload (Homepage)',
+    );
+  }
   report.count('homepage sections exported', sections.length);
   return { sections };
 }
+
+function carousel(module: string, extra: { link?: string } = {}) {
+  const { limitKey: _limitKey, ...rest } = CAROUSELS[module]!;
+  return { kind: 'carousel' as const, ...rest, ...extra, limit: 8 };
+}
+
+const defaultCarousels = [
+  carousel('ps_specials'),
+  carousel('ps_featuredproducts'),
+  carousel('ps_bestsellers', { link: '/meilleures-ventes' }),
+];
 
 function localLink(url: string | null): string | null {
   const value = orNull(url);

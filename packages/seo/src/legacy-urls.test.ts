@@ -66,8 +66,11 @@ describe('parseLegacyPath', () => {
   });
 
   it('parses brand and supplier URLs', () => {
+    expect(parseLegacyPath('/brand/2-karcher')).toEqual({ kind: 'brand', brandId: 2, slug: 'karcher' });
     expect(parseLegacyPath('/2_karcher')).toEqual({ kind: 'brand', brandId: 2, slug: 'karcher' });
+    expect(parseLegacyPath('/supplier/3-karcher-france')).toEqual({ kind: 'supplier' });
     expect(parseLegacyPath('/3__karcher-france')).toEqual({ kind: 'supplier' });
+    expect(parseLegacyPath('/brand/2-')).toBeNull();
     expect(parseLegacyPath('/fournisseur')).toEqual({ kind: 'supplier' });
     expect(parseLegacyPath('/2_')).toBeNull();
   });
@@ -103,7 +106,7 @@ describe('path builders', () => {
       '/home-garden/1-k2-classic-nettoyeur-haute-pression-4054278249025.html',
       '/home-garden/867-aspirateur-laveur-fcv-3.html',
       '/12-home-garden',
-      '/2_karcher',
+      '/brand/2-karcher',
       '/content/62-devenir-revendeur',
       '/2292-home_default/aspirateur-laveur-fcv-3.jpg',
     ]);

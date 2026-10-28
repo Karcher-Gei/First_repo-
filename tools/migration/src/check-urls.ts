@@ -1,7 +1,9 @@
 /**
  * Requests every URL of the inventory (out/url-inventory.csv) from the new storefront.
  * Active PrestaShop URLs must answer 200, or 301/308 for images and non-canonical forms;
- * inactive ones must answer 404 (or a redirect someone set up). Exits non-zero on any miss.
+ * inactive ones must answer 404 (or a redirect someone set up); those the import redirects
+ * (inactive products sent to their category, the Promotions category) must redirect.
+ * Exits non-zero on any miss.
  *
  *   pnpm --filter @karcher/migration inventory
  *   pnpm --filter @karcher/migration check:urls [https://staging.example]
@@ -20,8 +22,8 @@ const rows = readFileSync(csvFile, 'utf8')
   .split('\n')
   .slice(1)
   .map((line) => {
-    const [type, id, urlPath, active] = line.split(',');
-    return { type: type!, id: id!, path: urlPath!, active: active === 'true' };
+    const [type, id, urlPath, active, expect] = line.split(',');
+    return { type: type!, id: id!, path: urlPath!, active: active === 'true', expect };
   });
 
 const REDIRECT = new Set([301, 308]);
@@ -32,13 +34,18 @@ const CONCURRENCY = 8;
 async function check(row: (typeof rows)[number]): Promise<void> {
   const response = await fetch(base + row.path, { redirect: 'manual' }).catch(() => null);
   const status = response?.status ?? 0;
-  const key = `${row.active ? 'active' : 'inactive'} ${status}`;
+  // Inventories from before the "expect" column: by the active flag.
+  const expect = row.expect ?? (row.active ? 'page' : 'gone');
+  const key = `${expect} ${status}`;
   statuses.set(key, (statuses.get(key) ?? 0) + 1);
-  const okStatus = row.active
-    ? status === 200 || REDIRECT.has(status)
-    : status === 404 || REDIRECT.has(status);
+  const okStatus =
+    expect === 'redirect'
+      ? REDIRECT.has(status)
+      : expect === 'page'
+        ? status === 200 || REDIRECT.has(status)
+        : status === 404 || REDIRECT.has(status);
   if (!okStatus) {
-    failures.push(`${status} ${row.active ? 'active' : 'inactive'} ${row.type} ${row.path}`);
+    failures.push(`${status} ${expect} ${row.type} ${row.path}`);
   }
 }
 

@@ -55,16 +55,19 @@ test('new products and best sellers follow PrestaShop', async ({ page }) => {
 });
 
 test('brand pages and supplier URLs', async ({ page, request }) => {
-  await page.goto('/2_karcher');
+  await page.goto('/brand/2-karcher');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Kärcher');
   await expect(page).toHaveTitle('Produits Kärcher en Tunisie');
   await expect(cardNames(page)).toHaveCount(2);
 
-  const wrongSlug = await request.get('/2_autre', { maxRedirects: 0 });
-  expect(wrongSlug.status()).toBe(308);
-  expect(wrongSlug.headers().location).toMatch(/\/2_karcher$/);
-  expect((await request.get('/5_ancienne-marque')).status()).toBe(404);
-  const supplier = await request.get('/3__karcher-france', { maxRedirects: 0 });
+  // PrestaShop's default format, and a wrong slug, lead to the shop's own.
+  for (const path of ['/2_karcher', '/brand/2-autre']) {
+    const response = await request.get(path, { maxRedirects: 0 });
+    expect(response.status()).toBe(308);
+    expect(response.headers().location).toMatch(/\/brand\/2-karcher$/);
+  }
+  expect((await request.get('/brand/5-ancienne-marque')).status()).toBe(404);
+  const supplier = await request.get('/supplier/3-karcher-france', { maxRedirects: 0 });
   expect(supplier.status()).toBe(301);
   expect(supplier.headers().location).toMatch(/\/brands$/);
 });

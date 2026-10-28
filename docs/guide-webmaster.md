@@ -50,7 +50,7 @@ L’adresse de la page (URL) est créée toute seule à l’enregistrement.
 ### Onglet SEO
 
 **Balise titre** et **Méta description** : ce que Google affiche. Vides, le site utilise le nom et le début de la
-description. **N’effacez pas l’« ID PrestaShop »** : il sert à l’adresse de la page.
+description. **N’effacez pas l’« ID PrestaShop »** ni le **Slug de l’URL** : ils forment l’adresse de la page.
 
 ### Gamme professionnelle : « Prix sur devis »
 
@@ -111,10 +111,14 @@ Astuces :
   son adresse automatiquement. Ajoutez-y des produits depuis la fiche de chaque produit (bloc **Catégories**) ou
   par le fichier CSV (colonne « Catégories »).
 - **Image de la catégorie** : bloc Ressources. Elle s’affiche en tête de la page et dans le menu.
+- **Onglet SEO** : **Nom dans le menu** (court, ex. « HOME & GARDEN », vide = le nom de la catégorie) et
+  **Cacher du menu** (la page reste accessible par son adresse). Ne changez pas le **Slug de l’URL** d’une
+  catégorie importée : c’est l’adresse que Google connaît.
 - **Filtres affichés** (onglet **Filtres**) : cochez les caractéristiques proposées comme filtres sur la page de
   la catégorie (ex. Type et Gamme). Aucune cochée : toutes celles de ses produits.
-- « Promotions » et « Coup de cœur » sont des **sélections**, pas des catégories : elles n’apparaissent pas dans le
-  menu. « Coup de cœur » (page d’accueil) se gère comme une catégorie, par le bloc Catégories du produit.
+- « Promotions » est automatique : tous les produits avec un prix barré. « Coup de cœur » et « Bestsellers » sont
+  des **sélections** cachées du menu ; « Coup de cœur » (page d’accueil) se gère comme une catégorie, par le bloc
+  Catégories du produit.
 
 ## 6. Les caractéristiques (filtres)
 
@@ -123,7 +127,7 @@ pression »…).
 
 - Nouvelle caractéristique : **Créer** une facette, puis ajoutez ses valeurs.
 - Ensuite, sur chaque produit : **Valeurs de facette** → choisissez la valeur.
-- La facette **Marque** liste les marques ; chacune a sa page (ex. `/2_karcher`).
+- La facette **Marque** liste les marques ; chacune a sa page (ex. `/brand/2-karcher`).
 
 ## 7. Page d’accueil et contenus (CMS)
 

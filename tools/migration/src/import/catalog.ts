@@ -1,9 +1,12 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
+import { categoryPath } from '@karcher/seo';
+
 import type {
   PrestaShopReader,
   PsCategory,
+  PsMenuEntry,
   PsCombinationAttribute,
   PsImage,
   PsManufacturer,
@@ -11,10 +14,11 @@ import type {
 } from '../prestashop';
 import { codeOf, imageRelativePath, orNull, priceWithTaxMillimes, validEan } from '../util';
 import { ok, type VendureAdmin } from '../vendure-admin';
-import { importFeaturedCollection } from './homepage';
+import { FEATURED_SLUG, importFeaturedCollection } from './homepage';
 import { quoteOnlyCategories, quoteOnlyProducts } from './quote-only';
 import type { Report } from './report';
 import { pickSpecificPrice, prestaShopDate, saleOf, specificPriceStatus, type Sale } from './sales';
+import { menuLabels, productRedirects, replacedCategories, type Redirect } from './structure';
 
 /** Where the original product images are: a copy of PrestaShop's img/p folder, or the live site. */
 export type ImageSource = { dir: string } | { baseUrl: string };
@@ -27,6 +31,8 @@ export interface CatalogOptions {
   defaultTaxRate: number;
   /** Categories of the quote-only professional range; empty: the "Professionnel" tree. */
   quoteOnlyCategoryIds: number[];
+  /** Categories (with their subcategories) taken out of that range, e.g. accessories. */
+  quoteOnlyExcludedCategoryIds: number[];
 }
 
 /** What the catalog import created, for the steps that follow it. */
@@ -106,7 +112,11 @@ export async function importCatalog(
   const quoteOnly = quoteOnlyProducts(
     products,
     assignments,
-    quoteOnlyCategories(allCategories, options.quoteOnlyCategoryIds),
+    quoteOnlyCategories(
+      allCategories,
+      options.quoteOnlyCategoryIds,
+      options.quoteOnlyExcludedCategoryIds,
+    ),
   );
   report.count('quote-only products (professional range)', quoteOnly.size);
 
@@ -131,8 +141,11 @@ export async function importCatalog(
       ],
       customFields: {
         legacyId: product.id_product,
+        // Vendure makes slugs unique (-2); the URL keeps PrestaShop's.
+        urlSlug: product.link_rewrite,
         ean13: validEan(product.ean13),
         urlCategory: product.category_slug,
+        defaultCategoryId: product.id_category_default,
         addedAt: prestaShopDate(product.date_add)?.toISOString() ?? null,
         unitsSold: Number(product.units_sold),
         quoteOnly: quoteOnly.has(product.id_product),
@@ -164,10 +177,8 @@ export async function importCatalog(
       const productId = saved.id;
       productIds.set(product.id_product, productId);
       if (saved.slug !== product.link_rewrite) {
-        // The old URL still works (the storefront redirects it), but it is no longer the canonical one.
-        report.warn(
-          `Product ${product.id_product}: slug "${product.link_rewrite}" is used by another product, Vendure made it "${saved.slug}"`,
-        );
+        // Its URL keeps PrestaShop's slug (urlSlug); only the dashboard shows Vendure's.
+        report.count('products sharing a slug with another (URL unchanged)');
       }
       await syncVariants(admin, {
         productId,
@@ -199,8 +210,31 @@ export async function importCatalog(
     }
   }
 
-  await importCategories(admin, allCategories, assignments, productIds, options.images, report);
-  await importFeaturedCollection(ps, admin, productIds, report);
+  const replaced = replacedCategories(allCategories, assignments);
+  await importCategories(admin, {
+    categories: allCategories,
+    assignments,
+    productIds,
+    images: options.images,
+    menu: await ps.menuEntries(),
+    replaced,
+    report,
+  });
+  // A "Coup de cœur" category (imported above) takes the place of the featured products module's.
+  if (!allCategories.some((c) => c.active === 1 && c.link_rewrite === FEATURED_SLUG)) {
+    await importFeaturedCollection(ps, admin, productIds, report);
+  }
+  await saveRedirects(
+    admin,
+    [
+      ...[...replaced].flatMap(([id, toPath]) => {
+        const category = allCategories.find((c) => c.id_category === id)!;
+        return [{ fromPath: categoryPath({ id, slug: category.link_rewrite }), toPath }];
+      }),
+      ...productRedirects(options.limit ? products : allProducts, allCategories, replaced),
+    ],
+    report,
+  );
   return { productIds };
 }
 
@@ -661,30 +695,50 @@ async function syncVariants(
 /**
  * Categories become collections listing exactly the products assigned to them in PrestaShop
  * (product-id filter, not inherited from subcategories, as PrestaShop shows them).
- * Inactive categories are left out; their URLs fall back to the legacy redirects table.
+ * Inactive categories are left out; their URLs fall back to the legacy redirects table, as do
+ * those replaced by an automatic page (Promotions). The main menu's labels become menu labels,
+ * and categories absent from it (selections such as Coup de cœur) are hidden from the menu.
  */
 async function importCategories(
   admin: VendureAdmin,
-  categories: PsCategory[],
-  assignments: { id_category: number; id_product: number }[],
-  productIds: Map<number, string>,
-  images: ImageSource,
-  report: Report,
+  {
+    categories,
+    assignments,
+    productIds,
+    images,
+    menu,
+    replaced,
+    report,
+  }: {
+    categories: PsCategory[];
+    assignments: { id_category: number; id_product: number }[];
+    productIds: Map<number, string>;
+    images: ImageSource;
+    menu: PsMenuEntry[];
+    replaced: Map<number, string>;
+    report: Report;
+  },
 ): Promise<void> {
+  const labels = menuLabels(menu);
   type Row = {
     id: string;
+    slug: string;
     featuredAsset: { id: string } | null;
     customFields: { legacyId: number | null } | null;
   };
+  const rows = await admin.all<Row>(
+    `query ($skip: Int, $take: Int) { collections(options: { skip: $skip, take: $take }) { totalItems items { id slug featuredAsset { id } customFields { legacyId } } } }`,
+    (data: { collections: { items: Row[]; totalItems: number } }) => data.collections,
+  );
   const existing = new Map(
-    (
-      await admin.all<Row>(
-        `query ($skip: Int, $take: Int) { collections(options: { skip: $skip, take: $take }) { totalItems items { id featuredAsset { id } customFields { legacyId } } } }`,
-        (data: { collections: { items: Row[]; totalItems: number } }) => data.collections,
-      )
-    ).flatMap((row) =>
+    rows.flatMap((row) =>
       row.customFields?.legacyId != null ? [[row.customFields.legacyId, row]] : [],
     ),
+  );
+  // The "Coup de cœur" collection an earlier run built from the featured products module becomes
+  // the PrestaShop category of that name, instead of a second one at /coup-de-coeur-2.
+  const featured = rows.find(
+    (row) => row.slug === FEATURED_SLUG && row.customFields?.legacyId == null,
   );
   const productsOf = groupBy(assignments, (a) => a.id_category);
   const collectionIds = new Map<number, string>();
@@ -712,6 +766,16 @@ async function importCategories(
       );
       continue;
     }
+    if (replaced.has(category.id_category)) {
+      report.count(`categories replaced by ${replaced.get(category.id_category)}`);
+      continue;
+    }
+    // Without the menu module, every category stays in the menu.
+    const label = labels.get(category.id_category);
+    const hideFromMenu = labels.size > 0 && label === undefined;
+    if (hideFromMenu) {
+      report.count("categories hidden from the menu (not in PrestaShop's)");
+    }
     const ids = (productsOf.get(category.id_category) ?? []).flatMap((a) => {
       const id = productIds.get(a.id_product);
       return id ? [id] : [];
@@ -719,7 +783,11 @@ async function importCategories(
     const input = {
       isPrivate: false,
       inheritFilters: false,
-      customFields: { legacyId: category.id_category },
+      customFields: {
+        legacyId: category.id_category,
+        urlSlug: category.link_rewrite,
+        hideFromMenu,
+      },
       filters: ids.length
         ? [
             {
@@ -740,12 +808,15 @@ async function importCategories(
           customFields: {
             metaTitle: orNull(category.meta_title),
             metaDescription: orNull(category.meta_description),
+            menuLabel: label && label !== category.name ? label : null,
           },
         },
       ],
     };
     try {
-      const found = existing.get(category.id_category);
+      const found =
+        existing.get(category.id_category) ??
+        (category.link_rewrite === FEATURED_SLUG ? featured : undefined);
       // The category image (img/c/{id}.jpg) is uploaded once; later runs keep the asset.
       const imageAssetId = found?.featuredAsset ? undefined : await categoryImage(category);
       const withImage = imageAssetId
@@ -772,6 +843,17 @@ async function importCategories(
       );
     }
   }
+}
+
+/** Old URLs that lead elsewhere now, in Vendure's legacy redirects table (editable in the dashboard). */
+async function saveRedirects(admin: VendureAdmin, redirects: Redirect[], report: Report) {
+  for (const redirect of redirects) {
+    await admin.gql(
+      `mutation ($input: LegacyRedirectInput!) { upsertLegacyRedirect(input: $input) { id } }`,
+      { input: { ...redirect, statusCode: 301 } },
+    );
+  }
+  report.count('redirects saved', redirects.length);
 }
 
 function groupBy<T, K>(items: T[], key: (item: T) => K): Map<K, T[]> {

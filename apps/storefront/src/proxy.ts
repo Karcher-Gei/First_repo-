@@ -8,7 +8,7 @@ const INTERNAL = /^\/(p|c|b|s|img)(\/|$)/;
  * Maps karcher-gei.tn's PrestaShop URLs onto internal routes without changing the address bar:
  *   /home-garden/867-aspirateur-laveur-fcv-3.html -> /p/867
  *   /12-home-garden                               -> /c/12
- *   /2_karcher                                    -> /b/2
+ *   /brand/2-karcher                              -> /b/2
  *   /promotions                                   -> /s/prices-drop
  *   /2292-home_default/aspirateur-laveur-fcv-3.jpg -> /img/2292/home_default
  * The original path travels as ?from=, so each page can 301 to its canonical URL.

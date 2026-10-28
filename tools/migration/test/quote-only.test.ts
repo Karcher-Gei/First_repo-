@@ -35,6 +35,10 @@ describe('quoteOnlyCategories', () => {
   it('uses the configured categories instead', () => {
     assert.deepEqual([...quoteOnlyCategories(categories, [12])].sort(), [12, 13]);
   });
+
+  it('takes out excluded categories with their subcategories', () => {
+    assert.deepEqual([...quoteOnlyCategories(categories, [], [20])].sort(), [15]);
+  });
 });
 
 describe('quoteOnlyProducts', () => {

@@ -39,6 +39,14 @@ function imageSourceFromEnv(): ImageSource {
   );
 }
 
+/** "41, 52" -> [41, 52] */
+function idsFromEnv(name: string): number[] {
+  return (process.env[name] ?? '')
+    .split(',')
+    .map(Number)
+    .filter((id) => id > 0);
+}
+
 function csvCell(value: string): string {
   return /[",\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
 }
@@ -72,10 +80,8 @@ async function main(): Promise<void> {
           images: imageSourceFromEnv(),
           limit: values.limit ? Number(values.limit) : undefined,
           defaultTaxRate: 19,
-          quoteOnlyCategoryIds: (process.env.PS_QUOTE_ONLY_CATEGORY_IDS ?? '')
-            .split(',')
-            .map(Number)
-            .filter((id) => id > 0),
+          quoteOnlyCategoryIds: idsFromEnv('PS_QUOTE_ONLY_CATEGORY_IDS'),
+          quoteOnlyExcludedCategoryIds: idsFromEnv('PS_QUOTE_ONLY_EXCLUDED_CATEGORY_IDS'),
         },
         report,
       );

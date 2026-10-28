@@ -9,7 +9,8 @@ DROP TABLE IF EXISTS ka_lang, ka_country, ka_state, ka_tax, ka_tax_rules_group, 
   ka_stock_available, ka_feature_lang, ka_feature_value_lang, ka_feature_product, ka_image,
   ka_customer, ka_address, ka_cms, ka_cms_lang, ka_image_lang, ka_manufacturer, ka_manufacturer_lang,
   ka_meta, ka_meta_lang, ka_specific_price, ka_product_sale, ka_configuration, ka_hook, ka_module,
-  ka_hook_module, ka_homeslider, ka_homeslider_slides, ka_homeslider_slides_lang;
+  ka_hook_module, ka_homeslider, ka_homeslider_slides, ka_homeslider_slides_lang, ka_novmegamenu,
+  ka_novmegamenu_lang;
 
 CREATE TABLE ka_lang (id_lang INT PRIMARY KEY, iso_code VARCHAR(2));
 INSERT INTO ka_lang VALUES (1, 'fr');
@@ -31,7 +32,8 @@ CREATE TABLE ka_category (id_category INT PRIMARY KEY, id_parent INT, level_dept
 INSERT INTO ka_category VALUES
   (1, 0, 0, 1, 0, 0), (2, 1, 1, 1, 0, 1),
   (12, 2, 2, 1, 0, 0), (13, 12, 3, 1, 0, 0), (14, 12, 3, 1, 1, 0),
-  (15, 2, 2, 1, 1, 0), (16, 2, 2, 0, 2, 0);
+  (15, 2, 2, 1, 1, 0), (16, 2, 2, 0, 2, 0),
+  (17, 15, 3, 1, 0, 0), (18, 12, 3, 1, 2, 0), (19, 2, 2, 1, 3, 0);
 CREATE TABLE ka_category_lang (id_category INT, id_shop INT, id_lang INT, name VARCHAR(128), description TEXT, link_rewrite VARCHAR(128), meta_title VARCHAR(255), meta_description VARCHAR(512));
 INSERT INTO ka_category_lang VALUES
   (1, 1, 1, 'Racine', '', 'racine', '', ''),
@@ -40,18 +42,25 @@ INSERT INTO ka_category_lang VALUES
   (13, 1, 1, 'Nettoyeurs haute pression', '<p>Nettoyeurs haute pression Kärcher.</p>', 'nettoyeurs-haute-pression', '', ''),
   (14, 1, 1, 'Aspirateurs', '', 'aspirateurs', '', ''),
   (15, 1, 1, 'Professionnel', '<p>La gamme professionnelle.</p>', 'professionnel', '', ''),
-  (16, 1, 1, 'Ancienne gamme', '', 'ancienne-gamme', '', '');
+  (16, 1, 1, 'Ancienne gamme', '', 'ancienne-gamme', '', ''),
+  -- As on karcher-gei.tn: two categories share a slug, a hand-filled "Promotions" category (replaced
+  -- by the automatic /promotions page) and a hand-picked "Coup de cœur" selection outside the menu.
+  (17, 1, 1, 'Aspirateurs', '', 'aspirateurs', '', ''),
+  (18, 1, 1, 'Promotions', '', 'promotions', '', ''),
+  (19, 1, 1, 'Coup de cœur', '', 'coup-de-coeur', '', '');
 CREATE TABLE ka_category_product (id_category INT, id_product INT, position INT);
-INSERT INTO ka_category_product VALUES (2, 867, 0), (12, 867, 0), (14, 867, 0), (12, 101, 1), (13, 101, 0), (13, 102, 1), (13, 103, 2), (15, 104, 0);
+INSERT INTO ka_category_product VALUES (2, 867, 0), (12, 867, 0), (14, 867, 0), (12, 101, 1), (13, 101, 0), (13, 102, 1), (13, 103, 2), (15, 104, 0),
+  (17, 104, 0), (18, 867, 0), (19, 867, 0), (19, 101, 1), (19, 104, 2);
 
 -- price is excluding VAT, as PrestaShop stores it
-CREATE TABLE ka_product (id_product INT PRIMARY KEY, id_tax_rules_group INT, reference VARCHAR(64), ean13 VARCHAR(13), price DECIMAL(20,6), active TINYINT, id_category_default INT, id_manufacturer INT, date_add DATETIME);
+-- The inactive product 103 sends its visitors to its default category, as all of karcher-gei.tn's do.
+CREATE TABLE ka_product (id_product INT PRIMARY KEY, id_tax_rules_group INT, reference VARCHAR(64), ean13 VARCHAR(13), price DECIMAL(20,6), active TINYINT, id_category_default INT, id_manufacturer INT, date_add DATETIME, redirect_type ENUM('404','301-product','302-product','301-category','302-category'), id_type_redirected INT);
 INSERT INTO ka_product VALUES
-  (867, 1, '1.055-300.0', '4054278634537', 1296.218487, 1, 12, 2, '2023-04-01 10:00:00'),
-  (101, 1, '1.324-030.0', '4054278800001', 714.285714, 1, 13, 2, '2023-05-01 10:00:00'),
-  (102, 2, '2.643-233.0', '123', 46.728972, 1, 13, 0, '2023-06-01 10:00:00'),
-  (103, 1, '1.673-121.0', '', 300.000000, 0, 13, 2, '2019-01-01 10:00:00'),
-  (104, 1, '', '4039784709412', 8403.361345, 1, 15, 5, '2024-01-01 10:00:00');
+  (867, 1, '1.055-300.0', '4054278634537', 1296.218487, 1, 12, 2, '2023-04-01 10:00:00', '301-category', 0),
+  (101, 1, '1.324-030.0', '4054278800001', 714.285714, 1, 13, 2, '2023-05-01 10:00:00', '301-category', 0),
+  (102, 2, '2.643-233.0', '123', 46.728972, 1, 13, 0, '2023-06-01 10:00:00', '404', 0),
+  (103, 1, '1.673-121.0', '', 300.000000, 0, 13, 2, '2019-01-01 10:00:00', '301-category', 0),
+  (104, 1, '', '4039784709412', 8403.361345, 1, 15, 5, '2024-01-01 10:00:00', '301-category', 0);
 CREATE TABLE ka_product_lang (id_product INT, id_shop INT, id_lang INT, name VARCHAR(128), description TEXT, description_short TEXT, link_rewrite VARCHAR(128), meta_title VARCHAR(255), meta_description VARCHAR(512));
 INSERT INTO ka_product_lang VALUES
   (867, 1, 1, 'Aspirateur laveur FC 3', '<p>Le nettoyeur de sols <strong>FC 3</strong> aspire et lave en un seul passage.</p>', '<p>Aspire et lave.</p>', 'aspirateur-laveur-fc-3', 'Aspirateur laveur FC 3 Kärcher | Karcher Tunisie', 'Nettoyeur de sols FC 3 : aspire et lave en un passage.'),
@@ -182,3 +191,17 @@ INSERT INTO ka_homeslider_slides_lang VALUES
   (1, 1, 'Nettoyeurs haute pression K 4', '<p>Jusqu’à -10 %</p>', 'Nettoyeur haute pression K 4 Kärcher', 'https://karcher-gei.tn/13-nettoyeurs-haute-pression', 'slide-k4.jpg'),
   (2, 1, 'Aspirateur laveur FC 3', '', 'Aspirateur laveur FC 3', 'https://www.karcher-gei.tn/home-garden/867-aspirateur-laveur-fc-3-4054278634537.html', 'slide-fc3.jpg'),
   (3, 1, 'Soldes d’hiver 2023', '', 'Soldes', 'https://karcher-gei.tn/promotions', 'soldes-2023.jpg');
+
+-- The theme's main menu (Nov mega menu): short labels, some with stray spaces. "Coup de cœur" and
+-- "Promotions" (a link) are not categories of the menu.
+CREATE TABLE ka_novmegamenu (id_novmegamenu INT UNSIGNED PRIMARY KEY, id_parent INT, value VARCHAR(255), type VARCHAR(20), level INT, position INT, active TINYINT(1));
+INSERT INTO ka_novmegamenu VALUES
+  (1, 0, '', '', 0, 0, 0), (2, 1, '', 'url', 1, 0, 1), (3, 1, '12', 'category', 1, 1, 1),
+  (4, 3, '13', 'category', 2, 0, 1), (5, 3, '14', 'category', 2, 1, 1), (6, 1, '15', 'category', 1, 2, 1),
+  (7, 6, '17', 'category', 2, 0, 1), (8, 1, '', 'url', 1, 3, 1), (9, 1, '62', 'cms', 1, 4, 1);
+CREATE TABLE ka_novmegamenu_lang (id_novmegamenu INT, id_lang INT, title VARCHAR(255), sub_title VARCHAR(255), html TEXT, url VARCHAR(255));
+INSERT INTO ka_novmegamenu_lang VALUES
+  (1, 1, 'Root', '', '', ''), (2, 1, 'Accueil', '', '', '/'), (3, 1, ' Maison & jardin', '', '', ''),
+  (4, 1, 'Nettoyeurs haute pression', '', '', ''), (5, 1, ' Aspirateurs ', '', '', ''),
+  (6, 1, 'Professionnel', '', '', ''), (7, 1, 'Aspirateurs pro', '', '', ''),
+  (8, 1, 'PROMOTIONS', '', '', '/37-promotions'), (9, 1, 'DEVENIR REVENDEUR', '', '', '');

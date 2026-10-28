@@ -18,39 +18,37 @@ export interface MenuLink {
 }
 
 /**
- * Category menu from Vendure's collection tree. Skipped: collections without a legacyId (no URL yet)
- * and those ticked "Cacher du menu" (selections such as Coup de cœur keep their page).
+ * Category menu from Vendure's collection tree, two levels deep. Skipped: collections without a
+ * legacyId (no URL yet) and those ticked "Cacher du menu" (selections such as Coup de cœur keep
+ * their page).
  */
 export async function getCategoryMenu(): Promise<MenuCategory[]> {
   const { collections } = await shopQuery(CATEGORY_TREE, {});
-  return collections.items.flatMap((collection) => {
+  const ids = new Set(collections.items.map((c) => c.id));
+  const shown = collections.items.flatMap((collection) => {
     const href = categoryHref(collection);
-    if (!href || collection.customFields?.hideFromMenu) {
-      return [];
-    }
-    const children = [...(collection.children ?? [])]
-      .sort((a, b) => a.position - b.position)
-      .flatMap((child) => {
-        const childHref = categoryHref(child);
-        return childHref && !child.customFields?.hideFromMenu
-          ? [
-              {
-                name: categoryLabel(child),
-                href: childHref,
-                image: child.featuredAsset?.preview ?? null,
-              },
-            ]
-          : [];
-      });
-    return [
-      {
-        name: categoryLabel(collection),
-        href,
-        image: collection.featuredAsset?.preview ?? null,
-        children,
-      },
-    ];
+    return href && !collection.customFields?.hideFromMenu
+      ? [
+          {
+            ...collection,
+            entry: {
+              name: categoryLabel(collection),
+              href,
+              image: collection.featuredAsset?.preview ?? null,
+            },
+          },
+        ]
+      : [];
   });
+  // Top level: collections whose parent is Vendure's hidden root, absent from the list.
+  return shown
+    .filter((collection) => !ids.has(collection.parentId))
+    .map((collection) => ({
+      ...collection.entry,
+      children: shown
+        .filter((child) => child.parentId === collection.id)
+        .map((child) => child.entry),
+    }));
 }
 
 /** Header links and footer columns maintained by staff in the CMS (Navigation global). */

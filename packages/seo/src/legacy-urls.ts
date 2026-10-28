@@ -5,8 +5,11 @@
  *   category  /{id}-{slug}                                          /12-home-garden
  *   cms       /content/{id}-{slug}                                  /content/62-devenir-revendeur
  *   image     /{imageId}-{size}/{slug}.{ext}                        /2292-home_default/aspirateur-laveur-fcv-3.jpg
- *   brand     /{id}_{slug}                                          /2_karcher
- *   supplier  /{id}__{slug}, /fournisseur                           /3__karcher-france (no pages: sent to /brands)
+ *   brand     /brand/{id}-{slug}                                    /brand/2-karcher
+ *   supplier  /supplier/{id}-{slug}, /fournisseur                   /supplier/3-karcher-france (no pages: sent to /brands)
+ *
+ * Brand and supplier URLs follow the shop's routes (Shop Parameters > Traffic & SEO); PrestaShop's
+ * default formats, /{id}_{slug} and /{id}__{slug}, are recognised too.
  *   static    fixed paths                                           /promotions, /nous-contacter, ...
  *
  * Pages are found by ID, never by slug: a wrong slug or category answers 301 to the canonical path.
@@ -49,8 +52,8 @@ const PRODUCT_RE = new RegExp(
 const CATEGORY_RE = new RegExp(`^/(\\d+)-(${SLUG})$`);
 const CMS_RE = new RegExp(`^/content/(\\d+)-(${SLUG})$`);
 const IMAGE_RE = new RegExp(`^/(\\d+)-([a-z_]+)/(${SLUG})\\.(jpe?g|png|webp|gif)$`);
-const BRAND_RE = new RegExp(`^/(\\d+)_(${SLUG})$`);
-const SUPPLIER_RE = new RegExp(`^/(?:\\d+__${SLUG}|fournisseur)$`);
+const BRAND_RE = new RegExp(`^/(?:brand/(\\d+)-|(\\d+)_)(${SLUG})$`);
+const SUPPLIER_RE = new RegExp(`^/(?:supplier/\\d+-${SLUG}|\\d+__${SLUG}|fournisseur)$`);
 
 /** Parses a request path (no domain, no query string) into the page it addresses, or null. */
 export function parseLegacyPath(rawPath: string): LegacyRoute | null {
@@ -90,7 +93,7 @@ export function parseLegacyPath(rawPath: string): LegacyRoute | null {
 
   m = BRAND_RE.exec(path);
   if (m) {
-    return { kind: 'brand', brandId: Number(m[1]), slug: m[2]! };
+    return { kind: 'brand', brandId: Number(m[1] ?? m[2]), slug: m[3]! };
   }
 
   if (SUPPLIER_RE.test(path)) {
@@ -119,7 +122,7 @@ export function categoryPath({ id, slug }: { id: number; slug: string }): string
 }
 
 export function brandPath({ id, slug }: { id: number; slug: string }): string {
-  return `/${id}_${slug}`;
+  return `/brand/${id}-${slug}`;
 }
 
 export function cmsPath({ id, slug }: { id: number; slug: string }): string {

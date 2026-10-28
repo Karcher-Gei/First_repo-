@@ -341,14 +341,19 @@ export const SITEMAP_COLLECTIONS = graphql(`
   }
 `);
 
-/** Top-level categories and their children, for the menu, footer and homepage tiles. */
+/**
+ * Every category, flat, for the menu, footer and homepage tiles. Not nested through "children":
+ * Vendure leaves the translated custom fields (menu label) out of child collections.
+ */
 export const CATEGORY_TREE = graphql(`
   query CategoryTree {
-    collections(options: { topLevelOnly: true, take: 50, sort: { position: ASC } }) {
+    collections(options: { take: 100, sort: { position: ASC } }) {
       items {
         id
         name
         slug
+        parentId
+        position
         featuredAsset {
           preview
         }
@@ -357,21 +362,6 @@ export const CATEGORY_TREE = graphql(`
           urlSlug
           hideFromMenu
           menuLabel
-        }
-        children {
-          id
-          name
-          slug
-          featuredAsset {
-            preview
-          }
-          position
-          customFields {
-            legacyId
-            urlSlug
-            hideFromMenu
-            menuLabel
-          }
         }
       }
     }
