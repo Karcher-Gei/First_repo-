@@ -21,6 +21,3 @@ tools/migration/out
 .env
 .env.*
 !.env.example
-
-# Day Trader skills working data
-trader/
